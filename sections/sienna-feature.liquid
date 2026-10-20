@@ -1,0 +1,124 @@
+{%- liquid
+  assign col = section.settings.collection
+  assign img = section.settings.image
+  if img == blank
+    assign img = section.settings.product.featured_image
+  endif
+  if img == blank
+    assign img = col.featured_image
+  endif
+  assign img2 = section.settings.image_2
+  assign g1 = section.settings.collage_1.featured_image
+  assign g2 = section.settings.collage_2.featured_image
+  assign g3 = section.settings.collage_3.featured_image
+-%}
+<section class="s-feature s-feature--{{ section.settings.tint }}{% if section.settings.reverse %} is-reverse{% endif %}">
+  <div class="s-feature__grid page-width">
+    <div class="s-feature__copy">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="s-feature__eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h2 class="s-feature__title">{{ section.settings.heading }}</h2>
+      <p class="s-feature__text">{{ section.settings.text }}</p>
+
+      {%- if section.blocks.size > 0 -%}
+        <ol class="s-steps">
+          {%- for block in section.blocks -%}
+            <li class="s-step" {{ block.shopify_attributes }}>
+              <span class="s-step__n" aria-hidden="true">{{ forloop.index }}</span>
+              <span class="s-step__body">
+                <strong>{{ block.settings.title }}</strong>
+                <span>{{ block.settings.text }}</span>
+              </span>
+            </li>
+          {%- endfor -%}
+        </ol>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank -%}
+        <a class="s-btn s-btn--solid" href="{{ section.settings.button_link | default: col.url | default: routes.collections_url }}">
+          {{- section.settings.button_label -}}
+          <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 5h14M10 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+        </a>
+      {%- endif -%}
+    </div>
+
+    <div class="s-feature__art">
+      {%- if g1 != blank -%}
+        <div class="s-collage">
+          <figure class="s-collage__a">{{ g1 | image_url: width: 800 | image_tag: widths: '300, 500, 800', sizes: '(min-width: 990px) 20vw, 50vw', loading: 'lazy', alt: section.settings.collage_1.title }}</figure>
+          {%- if g2 != blank -%}<figure class="s-collage__b">{{ g2 | image_url: width: 800 | image_tag: widths: '300, 500, 800', sizes: '(min-width: 990px) 20vw, 50vw', loading: 'lazy', alt: section.settings.collage_2.title }}</figure>{%- endif -%}
+          {%- if g3 != blank -%}<figure class="s-collage__c">{{ g3 | image_url: width: 800 | image_tag: widths: '300, 500, 800', sizes: '(min-width: 990px) 20vw, 40vw', loading: 'lazy', alt: section.settings.collage_3.title }}</figure>{%- endif -%}
+        </div>
+      {%- elsif img != blank -%}
+        <figure class="s-feature__shot">
+          {{
+            img
+            | image_url: width: 1000
+            | image_tag:
+              widths: '400, 600, 800, 1000',
+              sizes: '(min-width: 990px) 38vw, 86vw',
+              loading: 'lazy',
+              alt: section.settings.image_alt
+          }}
+        </figure>
+        {%- if img2 != blank -%}
+          <figure class="s-feature__shot s-feature__shot--small">
+            {{ img2 | image_url: width: 600 | image_tag: widths: '300, 450, 600', sizes: '240px', loading: 'lazy', alt: '' }}
+          </figure>
+        {%- endif -%}
+      {%- else -%}
+        <div class="s-moon" aria-hidden="true">
+          <span class="s-moon__orb"></span>
+          <span class="s-moon__star s-moon__star--a"></span>
+          <span class="s-moon__star s-moon__star--b"></span>
+          <span class="s-moon__star s-moon__star--c"></span>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Sienna feature",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Small label" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Made for them" },
+    { "type": "textarea", "id": "text", "label": "Text" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop now" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "product", "id": "product", "label": "Or use a product's first image" },
+    { "type": "image_picker", "id": "image_2", "label": "Small second image" },
+    { "type": "text", "id": "image_alt", "label": "Image description" },
+    { "type": "header", "content": "Photo collage (replaces the single image)" },
+    { "type": "product", "id": "collage_1", "label": "Product 1" },
+    { "type": "product", "id": "collage_2", "label": "Product 2" },
+    { "type": "product", "id": "collage_3", "label": "Product 3" },
+    {
+      "type": "select",
+      "id": "tint",
+      "label": "Color",
+      "options": [
+        { "value": "blush", "label": "Blush" },
+        { "value": "lavender", "label": "Lavender" }
+      ],
+      "default": "blush"
+    },
+    { "type": "checkbox", "id": "reverse", "label": "Image on the left", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title" },
+        { "type": "text", "id": "text", "label": "Text" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Sienna feature" }]
+}
+{% endschema %}

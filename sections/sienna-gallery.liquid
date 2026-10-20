@@ -1,0 +1,57 @@
+{%- comment -%} Asymmetric product photo wall. Each tile links to its product. {%- endcomment -%}
+{%- if section.blocks.size > 0 -%}
+  <section class="s-wall">
+    <div class="page-width">
+      <header class="s-head">
+        <h2 class="s-head__title">{{ section.settings.title }}</h2>
+        {%- if section.settings.link_label != blank -%}
+          <a class="s-head__link" href="{{ section.settings.link_url | default: routes.collections_url }}">{{ section.settings.link_label }}</a>
+        {%- endif -%}
+      </header>
+      <ul class="s-wall__grid">
+        {%- for block in section.blocks -%}
+          {%- assign p = block.settings.product -%}
+          {%- if p != blank -%}
+            <li class="s-wall__tile s-wall__tile--{{ forloop.index }}" {{ block.shopify_attributes }}>
+              <a href="{{ p.url }}">
+                {{
+                  p.featured_image
+                  | image_url: width: 900
+                  | image_tag:
+                    widths: '320, 480, 640, 900',
+                    sizes: '(min-width: 990px) 30vw, 50vw',
+                    loading: 'lazy',
+                    alt: p.title
+                }}
+                <span class="s-wall__cap">
+                  <span>{{ p.title }}</span>
+                  <span>{{ p.price | money }}</span>
+                </span>
+              </a>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Sienna photo wall",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "title", "label": "Heading", "default": "Light up the room" },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "All lamps" },
+    { "type": "url", "id": "link_url", "label": "Link" }
+  ],
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Photo",
+      "settings": [{ "type": "product", "id": "product", "label": "Product" }]
+    }
+  ],
+  "presets": [{ "name": "Sienna photo wall" }]
+}
+{% endschema %}

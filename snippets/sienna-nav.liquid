@@ -1,0 +1,155 @@
+{%- comment -%}
+  Sienna navigation. One data table drives the desktop mega panel and the mobile drawer.
+  mode: 'desktop' | 'mobile'
+  Collections that do not exist yet still render; they simply link to /collections/<handle>.
+{%- endcomment -%}
+{%- liquid
+  assign groups = 'Home & Lighting~all-lamps~Unique decorative lamps for every space||Personalized Gifts~personalized-gifts~Custom art and gifts made for your people||Toys & Kids~toys-kids~Squishy toys and night lights for kids||Home Decor~home-decor~Small pieces that finish a room' | split: '||'
+
+  assign subs_0 = 'Mosaic & Stained Glass~mosaic-stained-glass~Colorful glass lamps^Modern Lamps~modern~Clean, sculpted lines^Rechargeable Lamps~rechargeable~Cordless, carry anywhere^Crystal Glow Lamps~crystal-glow-lamps~Etched crystal light^Animal Stained Glass Lamps~animal-stained-glass-lamps~Figures in colored glass' | split: '^'
+  assign subs_1 = 'Custom Art~custom-art-personalized-gifts~Portraits from your photos^Personalized Gifts~personalized-gifts-all~Made with names and dates^Photo to Cartoon Portraits~photo-to-cartoon-portraits~Your photo, illustrated^Custom Products~custom-products~Made to your request' | split: '^'
+  assign subs_2 = 'Squishy Toys~squishy-toys~Soft, slow-rising and silly^Mini Figures~mini-figures~Small collectibles^Kids’ Night Lights~kids-night-lights~Soft glow for bedtime' | split: '^'
+  assign subs_3 = 'Wall Art~wall-art~Prints and framed pieces^Decorative Accents~decorative-accents~Shelf and table pieces^Seasonal Decor~seasonal-decor~For every holiday^Gift Ideas~gift-ideas~Ready to wrap' | split: '^'
+-%}
+
+{%- if mode == 'desktop' -%}
+  <nav class="sn" aria-label="Main">
+    <ul class="sn__list">
+      <li class="sn__item">
+        <a class="sn__link{% if request.page_type == 'index' %} is-current{% endif %}" href="{{ routes.root_url }}">Home</a>
+      </li>
+      {%- for g in groups -%}
+        {%- assign gp = g | split: '~' -%}
+        <li class="sn__item sn__item--has-panel" data-sn-item>
+          <a
+            class="sn__link"
+            href="{{ routes.collections_url }}/{{ gp[1] }}"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-sn-trigger="{{ forloop.index0 }}"
+          >
+            {{- gp[0] -}}
+            <svg class="sn__caret" width="9" height="6" viewBox="0 0 9 6" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    <div class="sn-panel" data-sn-panel hidden>
+      <div class="sn-panel__inner page-width">
+        {%- for g in groups -%}
+          {%- liquid
+            assign gp = g | split: '~'
+            assign idx = forloop.index0
+            case idx
+              when 0
+                assign subs = subs_0
+              when 1
+                assign subs = subs_1
+              when 2
+                assign subs = subs_2
+              when 3
+                assign subs = subs_3
+            endcase
+            assign top_col = collections[gp[1]]
+            assign top_img = top_col.featured_image
+            if top_img == blank
+              for s in subs
+                assign sp = s | split: '~'
+                assign sc = collections[sp[1]]
+                if sc.featured_image != blank
+                  assign top_img = sc.featured_image
+                  break
+                endif
+              endfor
+            endif
+          -%}
+          <section class="sn-col" data-sn-col="{{ idx }}">
+            <a class="sn-col__hero" href="{{ routes.collections_url }}/{{ gp[1] }}" tabindex="-1" aria-hidden="true">
+              {%- if top_img != blank -%}
+                {{ top_img | image_url: width: 520 | image_tag: loading: 'lazy', widths: '260, 390, 520', sizes: '260px', alt: '' }}
+              {%- else -%}
+                <span class="sn-col__ph" aria-hidden="true">{{ gp[0] | slice: 0 }}</span>
+              {%- endif -%}
+            </a>
+            <h3 class="sn-col__title">{{ gp[0] }}</h3>
+            <p class="sn-col__tag">{{ gp[2] }}</p>
+            <a class="sn-col__all" href="{{ routes.collections_url }}/{{ gp[1] }}">View all</a>
+            <ul class="sn-col__subs">
+              {%- for s in subs -%}
+                {%- assign sp = s | split: '~' -%}
+                {%- assign sc = collections[sp[1]] -%}
+                <li>
+                  <a class="sn-sub" href="{{ routes.collections_url }}/{{ sp[1] }}">
+                    <span class="sn-sub__thumb">
+                      {%- if sc.featured_image != blank -%}
+                        {{ sc.featured_image | image_url: width: 120 | image_tag: loading: 'lazy', width: 48, height: 48, alt: '' }}
+                      {%- else -%}
+                        <span class="sn-sub__ph" aria-hidden="true">{{ sp[0] | slice: 0 }}</span>
+                      {%- endif -%}
+                    </span>
+                    <span class="sn-sub__text">
+                      <span class="sn-sub__name">{{ sp[0] }}</span>
+                      <span class="sn-sub__desc">{{ sp[2] }}</span>
+                    </span>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </section>
+        {%- endfor -%}
+      </div>
+    </div>
+  </nav>
+{%- else -%}
+  <button class="sm-toggle" type="button" aria-expanded="false" aria-controls="SiennaDrawer" data-sm-open>
+    <span class="sm-toggle__bars" aria-hidden="true"><i></i><i></i></span>
+    <span class="visually-hidden">Menu</span>
+  </button>
+
+  <div class="sm" id="SiennaDrawer" data-sm hidden>
+    <div class="sm__scrim" data-sm-close></div>
+    <div class="sm__sheet" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="sm__top">
+        <img src="{{ 'sienna-logo-light.svg' | asset_url }}" alt="{{ shop.name }}" width="96" height="49">
+        <button class="sm__close" type="button" data-sm-close aria-label="Close menu">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l12 12M15 3L3 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <a class="sm__home" href="{{ routes.root_url }}">Home</a>
+      {%- for g in groups -%}
+        {%- liquid
+          assign gp = g | split: '~'
+          case forloop.index0
+            when 0
+              assign subs = subs_0
+            when 1
+              assign subs = subs_1
+            when 2
+              assign subs = subs_2
+            when 3
+              assign subs = subs_3
+          endcase
+        -%}
+        <details class="sm__group">
+          <summary>
+            <span>{{ gp[0] }}</span>
+            <svg width="12" height="8" viewBox="0 0 9 6" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </summary>
+          <ul>
+            <li><a href="{{ routes.collections_url }}/{{ gp[1] }}" class="sm__all">View all</a></li>
+            {%- for s in subs -%}
+              {%- assign sp = s | split: '~' -%}
+              <li><a href="{{ routes.collections_url }}/{{ sp[1] }}">{{ sp[0] }}</a></li>
+            {%- endfor -%}
+          </ul>
+        </details>
+      {%- endfor -%}
+      <div class="sm__foot">
+        <a href="{{ routes.account_url }}">Account</a>
+        <a href="{{ routes.cart_url }}">Cart</a>
+        <a href="{{ routes.search_url }}">Search</a>
+      </div>
+    </div>
+  </div>
+{%- endif -%}

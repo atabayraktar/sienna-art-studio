@@ -1,0 +1,42 @@
+{%- comment -%} Renders only when real reviews have been added as blocks. {%- endcomment -%}
+{%- if section.blocks.size > 0 -%}
+  <section class="s-reviews">
+    <div class="page-width">
+      <h2 class="s-head__title">{{ section.settings.title }}</h2>
+      <ul class="s-reviews__list">
+        {%- for block in section.blocks -%}
+          <li class="s-review" {{ block.shopify_attributes }}>
+            {%- if block.settings.rating > 0 -%}
+              <p class="s-review__stars" aria-label="{{ block.settings.rating }} out of 5 stars">
+                {%- for i in (1..5) -%}<span class="{% if i <= block.settings.rating %}on{% endif %}">★</span>{%- endfor -%}
+              </p>
+            {%- endif -%}
+            <blockquote class="s-review__quote">{{ block.settings.quote }}</blockquote>
+            <p class="s-review__by">{{ block.settings.name }}{% if block.settings.product != blank %}<span>{{ block.settings.product }}</span>{% endif %}</p>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Sienna reviews",
+  "max_blocks": 6,
+  "settings": [{ "type": "text", "id": "title", "label": "Heading", "default": "From our customers" }],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        { "type": "range", "id": "rating", "label": "Stars", "min": 0, "max": 5, "step": 1, "default": 5 },
+        { "type": "textarea", "id": "quote", "label": "Review (real customers only)" },
+        { "type": "text", "id": "name", "label": "Name" },
+        { "type": "text", "id": "product", "label": "Product" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Sienna reviews" }]
+}
+{% endschema %}

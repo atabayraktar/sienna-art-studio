@@ -132,14 +132,20 @@
             <div class="collection collection--empty page-width" id="product-grid" data-id="{{ section.id }}">
               <div class="loading-overlay gradient"></div>
               <div class="title-wrapper center">
-                <h2 class="title title--primary">
-                  {{ 'sections.collection_template.empty' | t -}}
-                  <br>
-                  {{
-                    'sections.collection_template.use_fewer_filters_html'
-                    | t: link: collection.url, class: 'underlined-link link'
-                  }}
-                </h2>
+                {%- if collection.all_products_count == 0 -%}
+                  <h2 class="title title--primary">New pieces are on the way</h2>
+                  <p class="s-empty__text">This collection is still being filled. Browse everything we have right now.</p>
+                  <a class="s-btn s-btn--solid" href="{{ routes.all_products_collection_url }}">Shop all products</a>
+                {%- else -%}
+                  <h2 class="title title--primary">
+                    {{ 'sections.collection_template.empty' | t -}}
+                    <br>
+                    {{
+                      'sections.collection_template.use_fewer_filters_html'
+                      | t: link: collection.url, class: 'underlined-link link'
+                    }}
+                  </h2>
+                {%- endif -%}
               </div>
             </div>
           {%- else -%}

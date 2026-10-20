@@ -171,9 +171,7 @@
         assign render_search_left = true
       endif
 
-      if section.settings.menu != blank
-        render 'header-drawer', show_country_selector: country_selector, show_language_selector: language_selector, show_social_links: social_links
-      endif
+      render 'sienna-nav', mode: 'mobile'
 
       if render_search_left
         render 'header-search', input_id: 'Search-In-Modal-1'
@@ -182,77 +180,31 @@
 
     {%- if section.settings.logo_position != 'middle-center' -%}
       {%- if request.page_type == 'index' -%}
-        <h1 class="header__heading">
+        <div class="header__heading">
       {%- endif -%}
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
-        {%- if settings.logo != blank -%}
-          <div class="header__heading-logo-wrapper">
-            {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
-            {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
-            {% capture sizes %}(max-width: {{ settings.logo_width | times: 2 }}px) 50vw, {{ settings.logo_width }}px{% endcapture %}
-            {% capture widths %}{{ settings.logo_width }}, {{ settings.logo_width | times: 1.5 | round }}, {{ settings.logo_width | times: 2 }}{% endcapture %}
-            {{
-              settings.logo
-              | image_url: width: 600
-              | image_tag:
-                class: 'header__heading-logo motion-reduce',
-                widths: widths,
-                height: logo_height,
-                width: settings.logo_width,
-                alt: logo_alt,
-                sizes: sizes,
-                preload: true
-            }}
-          </div>
-        {%- else -%}
-          <span class="h2">{{ shop.name }}</span>
-        {%- endif -%}
+        <img class="header__heading-logo sienna-logo sienna-logo--light" src="{{ 'sienna-logo-light.svg' | asset_url }}" alt="{{ shop.name }}" width="112" height="58">
+        <img class="header__heading-logo sienna-logo sienna-logo--dark" src="{{ 'sienna-logo-dark.svg' | asset_url }}" alt="" width="112" height="58" aria-hidden="true">
       </a>
       {%- if request.page_type == 'index' -%}
-        </h1>
+        </div>
       {%- endif -%}
     {%- endif -%}
 
     {%- liquid
-      if section.settings.menu != blank
-        if section.settings.menu_type_desktop == 'dropdown'
-          render 'header-dropdown-menu'
-        elsif section.settings.menu_type_desktop != 'drawer'
-          render 'header-mega-menu'
-        endif
-      endif
+      render 'sienna-nav', mode: 'desktop'
     %}
 
     {%- if section.settings.logo_position == 'middle-center' -%}
       {%- if request.page_type == 'index' -%}
-        <h1 class="header__heading">
+        <div class="header__heading">
       {%- endif -%}
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
-        {%- if settings.logo != blank -%}
-          <div class="header__heading-logo-wrapper">
-            {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
-            {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
-            {% capture sizes %}(min-width: 750px) {{ settings.logo_width }}px, 50vw{% endcapture %}
-            {% capture widths %}{{ settings.logo_width }}, {{ settings.logo_width | times: 1.5 | round }}, {{ settings.logo_width | times: 2 }}{% endcapture %}
-            {{
-              settings.logo
-              | image_url: width: 600
-              | image_tag:
-                class: 'header__heading-logo',
-                widths: widths,
-                height: logo_height,
-                width: settings.logo_width,
-                alt: logo_alt,
-                sizes: sizes,
-                preload: true
-            }}
-          </div>
-        {%- else -%}
-          <span class="h2">{{ shop.name }}</span>
-        {%- endif -%}
+        <img class="header__heading-logo sienna-logo sienna-logo--light" src="{{ 'sienna-logo-light.svg' | asset_url }}" alt="{{ shop.name }}" width="112" height="58">
+        <img class="header__heading-logo sienna-logo sienna-logo--dark" src="{{ 'sienna-logo-dark.svg' | asset_url }}" alt="" width="112" height="58" aria-hidden="true">
       </a>
       {%- if request.page_type == 'index' -%}
-        </h1>
+        </div>
       {%- endif -%}
     {%- endif -%}
 
@@ -280,6 +232,10 @@
           </localization-form>
         {%- endif -%}
       </div>
+      <button class="s-lights header__icon" type="button" data-lights-toggle aria-pressed="false" aria-label="Turn on the lights">
+        <svg class="s-lights__bulb" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg>
+        <span class="s-lights__tip" data-on="Lights off" data-off="Lights on">Lights on</span>
+      </button>
       {% render 'header-search', input_id: 'Search-In-Modal' %}
 
       {%- if shop.customer_accounts_enabled -%}

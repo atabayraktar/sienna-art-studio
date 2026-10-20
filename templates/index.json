@@ -10,103 +10,83 @@
 {
   "sections": {
     "hero": {
-      "type": "image-banner",
-      "blocks": {
-        "h": {
-          "type": "heading",
-          "settings": {
-            "heading": "Made for meaningful moments ✦",
-            "heading_size": "h1"
-          }
-        },
-        "t": {
-          "type": "text",
-          "settings": {
-            "text": "Unique finds for your home and thoughtful gifts for every moment.",
-            "text_style": "subtitle"
-          }
-        },
-        "b": {
-          "type": "buttons",
-          "settings": {
-            "button_label_1": "Shop All",
-            "button_link_1": "shopify://collections/all",
-            "button_style_secondary_1": false,
-            "button_label_2": "Explore Gifts",
-            "button_link_2": "shopify://collections/gifts",
-            "button_style_secondary_2": true
-          }
-        }
-      },
-      "block_order": [
-        "h",
-        "t",
-        "b"
-      ],
-      "custom_css": [
-        "@media screen and (min-width: 750px) {.banner__box {max-width: 46rem; padding: 2.4rem 3rem; }}"
-      ],
+      "type": "sienna-hero",
       "settings": {
-        "image": "shopify://shop_images/hero-mosaic-blue.jpg",
-        "image_2": "shopify://shop_images/hero-mosaic-star.jpg",
-        "image_overlay_opacity": 10,
-        "image_height": "large",
-        "image_behavior": "none",
-        "desktop_content_position": "bottom-center",
-        "desktop_content_alignment": "center",
-        "show_text_box": true,
-        "color_scheme": "scheme-3",
-        "stack_images_on_mobile": false,
-        "mobile_content_alignment": "left",
-        "show_text_below": true
+        "heading": "Gifts That Make|Every Moment|Shine.",
+        "glow_last_word": true,
+        "subheading": "Discover unique gifts, beautiful lighting, personalized creations, and little surprises you'll love.",
+        "button_label": "Shop now",
+        "button_link": "shopify://collections/all",
+        "button_label_2": "Explore gifts",
+        "button_link_2": "shopify://collections/custom-art-personalized-gifts",
+        "product": "sapphire-bloom-mosaic-lamp",
+        "product_back": "emerald-mosaic-star-lamp",
+        "image_alt": "A lit mosaic lamp throwing colored patterns across a wall",
+        "tag_title": "New arrivals",
+        "tag_text": "The mosaic lamp edit",
+        "tag_link": "shopify://collections/mosaic-stained-glass"
       }
     },
-    "styles": {
-      "type": "collection-list",
+    "categories": {
+      "type": "sienna-categories",
       "blocks": {
         "c1": {
-          "type": "featured_collection",
+          "type": "category",
           "settings": {
-            "collection": "mosaic-stained-glass"
+            "product": "carnival-mosaic-vase-lamp",
+            "collection": "all-lamps",
+            "title": "Home & Lighting",
+            "caption": "Lamps that fill a room with color",
+            "tint": "sand"
           }
         },
         "c2": {
-          "type": "featured_collection",
+          "type": "category",
           "settings": {
-            "collection": "modern"
+            "collection": "custom-art-personalized-gifts",
+            "title": "Personalized Gifts",
+            "caption": "Custom art made from your photos",
+            "tint": "blush"
           }
         },
         "c3": {
-          "type": "featured_collection",
+          "type": "category",
           "settings": {
-            "collection": "rechargeable"
+            "collection": "squishy-toys",
+            "title": "Toys & Kids",
+            "caption": "Squishy toys and little lights",
+            "tint": "lavender"
+          }
+        },
+        "c4": {
+          "type": "category",
+          "settings": {
+            "product": "tiffany-table-lamp",
+            "collection": "mosaic-stained-glass",
+            "title": "Home Decor",
+            "caption": "Small pieces that finish a room",
+            "tint": "sand"
           }
         }
       },
       "block_order": [
         "c1",
         "c2",
-        "c3"
+        "c3",
+        "c4"
       ],
       "settings": {
-        "title": "Shop by style",
-        "heading_size": "h1",
-        "image_ratio": "square",
-        "columns_desktop": 3,
-        "color_scheme": "scheme-1",
-        "show_view_all": false,
-        "columns_mobile": "1",
-        "swipe_on_mobile": true,
-        "padding_top": 48,
-        "padding_bottom": 36
+        "title": "Shop by category",
+        "link_label": "All products",
+        "link_url": "shopify://collections/all"
       }
     },
-    "lamps": {
+    "featured": {
       "type": "featured-collection",
       "settings": {
         "collection": "all-lamps",
         "products_to_show": 8,
-        "title": "The lamps",
+        "title": "Featured lamps",
         "heading_size": "h1",
         "description": "",
         "show_description": false,
@@ -116,160 +96,153 @@
         "full_width": false,
         "show_view_all": true,
         "view_all_style": "outline",
-        "color_scheme": "scheme-2",
+        "color_scheme": "scheme-1",
         "image_ratio": "square",
         "image_shape": "default",
         "show_secondary_image": true,
         "show_vendor": false,
         "show_rating": false,
-        "quick_add": "none",
+        "quick_add": "standard",
         "columns_mobile": "2",
         "swipe_on_mobile": false,
-        "padding_top": 48,
-        "padding_bottom": 48
+        "padding_top": 8,
+        "padding_bottom": 24
       }
     },
-    "trust": {
-      "type": "multicolumn",
+    "gifts": {
+      "type": "sienna-feature",
       "blocks": {
-        "c1": {
-          "type": "column",
+        "s1": {
+          "type": "step",
           "settings": {
-            "title": "Secure Checkout",
-            "text": "<p>Payments go through Shopify's encrypted checkout.</p>",
-            "link_label": "",
-            "link": ""
+            "title": "Pick your piece",
+            "text": "Choose a portrait style or a personalized gift."
           }
         },
-        "c2": {
-          "type": "column",
+        "s2": {
+          "type": "step",
           "settings": {
-            "title": "Carefully Selected",
-            "text": "<p>Pieces chosen to make a home feel warmer.</p>",
-            "link_label": "",
-            "link": ""
+            "title": "Add your details",
+            "text": "Upload your photo and any names or dates on the product page."
           }
         },
-        "c3": {
-          "type": "column",
+        "s3": {
+          "type": "step",
           "settings": {
-            "title": "Easy Support",
-            "text": "<p>A question about an order or a lamp? Send us a message.</p>",
+            "title": "We make it for you",
+            "text": "Each piece is made to order from what you send."
+          }
+        }
+      },
+      "block_order": [
+        "s1",
+        "s2",
+        "s3"
+      ],
+      "settings": {
+        "eyebrow": "Personalized gifts",
+        "heading": "A gift made from your photo",
+        "text": "Send us a favorite picture and we turn it into a portrait of the people in it. It is the kind of present that gets framed instead of put in a drawer.",
+        "button_label": "Shop personalized gifts",
+        "button_link": "shopify://collections/custom-art-personalized-gifts",
+        "collection": "custom-art-personalized-gifts",
+        "product": "custom-couple-portrait-from-photo-personalized-cartoon-art-gift",
+        "image_alt": "A custom cartoon portrait of a couple",
+        "tint": "blush",
+        "reverse": false
+      }
+    },
+    "nightlights": {
+      "type": "sienna-feature",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "eyebrow": "Toys & kids",
+        "heading": "Little things, big smiles",
+        "text": "Squishy toys that slow-rise, crunch and bounce back, for pockets, desks and birthday bags. Bedtime night lights are on their way.",
+        "button_label": "Shop toys & kids",
+        "button_link": "shopify://collections/squishy-toys",
+        "collection": "squishy-toys",
+        "tint": "lavender",
+        "reverse": true,
+        "collage_1": "giant-banana-squishy",
+        "collage_2": "giant-strawberry-squishy",
+        "collage_3": "crunchy-corn"
+      }
+    },
+    "arrivals": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "squishy-toys",
+        "products_to_show": 4,
+        "title": "Squishy toys",
+        "heading_size": "h1",
+        "description": "",
+        "show_description": false,
+        "description_style": "body",
+        "columns_desktop": 4,
+        "enable_desktop_slider": false,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "outline",
+        "color_scheme": "scheme-1",
+        "image_ratio": "square",
+        "image_shape": "default",
+        "show_secondary_image": true,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "standard",
+        "columns_mobile": "2",
+        "swipe_on_mobile": true,
+        "padding_top": 24,
+        "padding_bottom": 24
+      }
+    },
+    "promises": {
+      "type": "sienna-promises",
+      "blocks": {
+        "p1": {
+          "type": "promise",
+          "settings": {
+            "icon": "gift",
+            "title": "Made personal",
+            "text": "Portraits and gifts are made from the photos and details you send."
+          }
+        },
+        "p2": {
+          "type": "promise",
+          "settings": {
+            "icon": "lock",
+            "title": "Secure checkout",
+            "text": "Payments go through Shopify's encrypted checkout."
+          }
+        },
+        "p3": {
+          "type": "promise",
+          "settings": {
+            "icon": "chat",
+            "title": "A real person to ask",
+            "text": "A question about an order or a lamp? Send us a message.",
             "link_label": "Contact us",
             "link": "shopify://pages/contact"
           }
         }
       },
       "block_order": [
-        "c1",
-        "c2",
-        "c3"
+        "p1",
+        "p2",
+        "p3"
       ],
       "settings": {
-        "title": "",
-        "heading_size": "h2",
-        "image_width": "third",
-        "image_ratio": "adapt",
-        "button_label": "",
-        "button_link": "",
-        "columns_desktop": 3,
-        "column_alignment": "center",
-        "background_style": "none",
-        "color_scheme": "scheme-1",
-        "columns_mobile": "1",
-        "swipe_on_mobile": false,
-        "padding_top": 40,
-        "padding_bottom": 40
+        "title": "Why shop Sienna"
       }
     },
-    "story": {
-      "type": "image-with-text",
-      "blocks": {
-        "h": {
-          "type": "heading",
-          "settings": {
-            "heading": "Switched on, the pattern fills the room",
-            "heading_size": "h1"
-          }
-        },
-        "t": {
-          "type": "text",
-          "settings": {
-            "text": "<p>A mosaic lamp is a different object once it's lit. The globe glows, and its pattern spreads over the wall and ceiling around it. Twelve patterns to choose from, on a swan-neck stand.</p>",
-            "text_style": "body"
-          }
-        },
-        "b": {
-          "type": "button",
-          "settings": {
-            "button_label": "See the mosaic lamps",
-            "button_link": "shopify://collections/mosaic-stained-glass",
-            "button_style_secondary": false
-          }
-        }
-      },
-      "block_order": [
-        "h",
-        "t",
-        "b"
-      ],
+    "reviews": {
+      "type": "sienna-reviews",
+      "blocks": {},
+      "block_order": [],
       "settings": {
-        "image": "shopify://shop_images/story-mosaic-lit.jpg",
-        "height": "adapt",
-        "desktop_image_width": "medium",
-        "layout": "image_first",
-        "image_behavior": "none",
-        "content_layout": "no-overlap",
-        "desktop_content_position": "middle",
-        "desktop_content_alignment": "left",
-        "mobile_content_alignment": "left",
-        "section_color_scheme": "scheme-3",
-        "color_scheme": "scheme-3",
-        "padding_top": 0,
-        "padding_bottom": 0
-      }
-    },
-    "our_story": {
-      "type": "rich-text",
-      "blocks": {
-        "cap": {
-          "type": "caption",
-          "settings": {
-            "caption": "Our Story",
-            "text_style": "caption-with-letter-spacing",
-            "text_size": "medium"
-          }
-        },
-        "t": {
-          "type": "text",
-          "settings": {
-            "text": "<p>Sienna was created to bring together beautiful pieces that make homes feel warmer and gifts feel more personal.</p>"
-          }
-        },
-        "b": {
-          "type": "button",
-          "settings": {
-            "button_label": "About us",
-            "button_link": "shopify://pages/about-us",
-            "button_style_secondary": true,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
-          }
-        }
-      },
-      "block_order": [
-        "cap",
-        "t",
-        "b"
-      ],
-      "settings": {
-        "desktop_content_position": "center",
-        "content_alignment": "center",
-        "color_scheme": "scheme-2",
-        "full_width": true,
-        "padding_top": 56,
-        "padding_bottom": 56
+        "title": "From our customers"
       }
     },
     "sienna_list": {
@@ -285,7 +258,7 @@
         "p": {
           "type": "paragraph",
           "settings": {
-            "text": "<p>New arrivals, gift ideas & special offers.</p>"
+            "text": "<p>New arrivals, gift ideas and the occasional offer. No spam.</p>"
           }
         },
         "f": {
@@ -301,53 +274,68 @@
       "settings": {
         "color_scheme": "scheme-4",
         "full_width": true,
-        "padding_top": 48,
-        "padding_bottom": 56
+        "padding_top": 64,
+        "padding_bottom": 64
       }
     },
-    "featured_collection_Yb67q3": {
-      "type": "featured-collection",
-      "name": "t:sections.featured-collection.presets.name",
+    "wall": {
+      "type": "sienna-gallery",
+      "blocks": {
+        "t0": {
+          "type": "tile",
+          "settings": {
+            "product": "sapphire-bloom-mosaic-lamp"
+          }
+        },
+        "t1": {
+          "type": "tile",
+          "settings": {
+            "product": "emerald-mosaic-star-lamp"
+          }
+        },
+        "t2": {
+          "type": "tile",
+          "settings": {
+            "product": "carnival-mosaic-vase-lamp"
+          }
+        },
+        "t3": {
+          "type": "tile",
+          "settings": {
+            "product": "tiffany-table-lamp"
+          }
+        },
+        "t4": {
+          "type": "tile",
+          "settings": {
+            "product": "ring-crystal-glow-lamp"
+          }
+        }
+      },
+      "block_order": [
+        "t0",
+        "t1",
+        "t2",
+        "t3",
+        "t4"
+      ],
       "settings": {
-        "collection": "custom-art-personalized-gifts",
-        "products_to_show": 2,
-        "title": "Custom Art & Personalized Gifts",
-        "heading_size": "h1",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "columns_desktop": 1,
-        "enable_desktop_slider": false,
-        "full_width": false,
-        "show_view_all": false,
-        "view_all_style": "solid",
-        "color_scheme": "scheme-1",
-        "image_ratio": "adapt",
-        "image_shape": "default",
-        "show_secondary_image": false,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "none",
-        "columns_mobile": "1",
-        "swipe_on_mobile": false,
-        "padding_top": 20,
-        "padding_bottom": 20
+        "title": "Light up the room",
+        "link_label": "All lamps",
+        "link_url": "shopify://collections/all-lamps"
       }
-    },
-    "179143079222a857e6": {
-      "type": "_blocks",
-      "settings": {}
     }
   },
   "order": [
     "hero",
-    "styles",
-    "lamps",
-    "trust",
-    "story",
-    "our_story",
-    "sienna_list",
-    "featured_collection_Yb67q3",
-    "179143079222a857e6"
+    "categories",
+    "wall",
+    "featured",
+    "gifts",
+    "nightlights",
+    "arrivals",
+    "promises",
+    "reviews",
+    "sienna_list"
   ]
 }

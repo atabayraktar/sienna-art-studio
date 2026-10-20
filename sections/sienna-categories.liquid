@@ -1,0 +1,92 @@
+{%- liquid
+  assign n = section.blocks.size
+-%}
+<section class="s-cats">
+  <div class="page-width">
+    <header class="s-head">
+      <h2 class="s-head__title">{{ section.settings.title }}</h2>
+      {%- if section.settings.link_label != blank -%}
+        <a class="s-head__link" href="{{ section.settings.link_url | default: routes.collections_url }}">{{ section.settings.link_label }}</a>
+      {%- endif -%}
+    </header>
+
+    <ul class="s-cats__grid" style="--n: {{ n }}">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign col = block.settings.collection
+          assign img = block.settings.image
+          if img == blank
+            assign img = block.settings.product.featured_image
+          endif
+          if img == blank
+            assign img = col.featured_image
+          endif
+          assign ttl = block.settings.title | default: col.title
+        -%}
+        <li class="s-cat s-cat--{{ block.settings.tint }}" {{ block.shopify_attributes }}>
+          <a class="s-cat__link" href="{{ col.url | default: routes.collections_url }}">
+            <span class="s-cat__arch">
+              {%- if img != blank -%}
+                {{
+                  img
+                  | image_url: width: 800
+                  | image_tag:
+                    widths: '300, 450, 600, 800',
+                    sizes: '(min-width: 990px) 22vw, (min-width: 750px) 44vw, 80vw',
+                    loading: 'lazy',
+                    alt: ''
+                }}
+              {%- else -%}
+                <span class="s-cat__blank" aria-hidden="true"></span>
+              {%- endif -%}
+            </span>
+            <span class="s-cat__meta">
+              <span class="s-cat__name">{{ ttl }}</span>
+              <span class="s-cat__note">{{ block.settings.caption }}</span>
+            </span>
+            <span class="s-cat__go" aria-hidden="true">
+              <svg width="18" height="12" viewBox="0 0 16 10"><path d="M0 5h14M10 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Sienna categories",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "title", "label": "Heading", "default": "Shop by category" },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "All products" },
+    { "type": "url", "id": "link_url", "label": "Link" }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "Collection" },
+        { "type": "text", "id": "title", "label": "Title (optional)" },
+        { "type": "text", "id": "caption", "label": "Caption" },
+        { "type": "image_picker", "id": "image", "label": "Image (optional, defaults to the collection image)" },
+        { "type": "product", "id": "product", "label": "Or use a product's first image" },
+        {
+          "type": "select",
+          "id": "tint",
+          "label": "Background tint",
+          "options": [
+            { "value": "blush", "label": "Blush" },
+            { "value": "lavender", "label": "Lavender" },
+            { "value": "sand", "label": "Sand" }
+          ],
+          "default": "sand"
+        }
+      ]
+    }
+  ],
+  "presets": [{ "name": "Sienna categories" }]
+}
+{% endschema %}

@@ -28,6 +28,18 @@
 {%- endstyle -%}
 
 <footer class="footer color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
+  <div class="s-footer-top page-width">
+    <div class="s-footer-brand">
+      <img src="{{ 'sienna-logo-dark.svg' | asset_url }}" alt="{{ shop.name }}" width="150" height="77" loading="lazy">
+      <p>Lamps, personalized gifts, and small things that make a room feel like yours.</p>
+    </div>
+    <ul class="s-footer-cats">
+      <li><a href="{{ routes.collections_url }}/all-lamps">Home &amp; Lighting</a></li>
+      <li><a href="{{ routes.collections_url }}/personalized-gifts">Personalized Gifts</a></li>
+      <li><a href="{{ routes.collections_url }}/toys-kids">Toys &amp; Kids</a></li>
+      <li><a href="{{ routes.collections_url }}/home-decor">Home Decor</a></li>
+    </ul>
+  </div>
   {%- liquid
     assign has_social_icons = true
     if settings.social_facebook_link == blank and settings.social_instagram_link == blank and settings.social_youtube_link == blank and settings.social_tiktok_link == blank and settings.social_twitter_link == blank and settings.social_pinterest_link == blank and settings.social_snapchat_link == blank and settings.social_tumblr_link == blank and settings.social_vimeo_link == blank
