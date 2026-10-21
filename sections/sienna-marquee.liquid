@@ -1,0 +1,47 @@
+{%- if section.blocks.size > 0 -%}
+  <div class="s-marquee" role="region" aria-label="Announcements" style="--s-marquee-speed: {{ section.settings.speed }}s">
+    <div class="s-marquee__track">
+      {%- for half in (1..2) -%}
+        <ul class="s-marquee__set"{% if half == 2 %} aria-hidden="true"{% endif %}>
+          {%- for rep in (1..8) -%}
+            {%- for block in section.blocks -%}
+              <li class="s-marquee__item" {% if half == 1 and rep == 1 %}{{ block.shopify_attributes }}{% endif %}>
+                {%- if block.settings.link != blank -%}
+                  <a href="{{ block.settings.link }}">{{ block.settings.text }}</a>
+                {%- else -%}
+                  <span>{{ block.settings.text }}</span>
+                {%- endif -%}
+                <svg class="s-marquee__star" width="10" height="10" viewBox="-101 -101 202 202" aria-hidden="true"><path d="M0,-100 L29.3,-70.7 L70.7,-70.7 L70.7,-29.3 L100,0 L70.7,29.3 L70.7,70.7 L29.3,70.7 L0,100 L-29.3,70.7 L-70.7,70.7 L-70.7,29.3 L-100,0 L-70.7,-29.3 L-70.7,-70.7 L-29.3,-70.7Z" fill="currentColor"/></svg>
+              </li>
+            {%- endfor -%}
+          {%- endfor -%}
+        </ul>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Sienna marquee bar",
+  "settings": [
+    { "type": "range", "id": "speed", "label": "Seconds for one full loop (higher is slower)", "min": 40, "max": 300, "step": 10, "default": 120 }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "Coming soon" },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Sienna marquee bar",
+      "blocks": [{ "type": "message" }]
+    }
+  ]
+}
+{% endschema %}

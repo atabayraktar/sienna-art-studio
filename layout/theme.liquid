@@ -22,7 +22,7 @@
     {%- endunless -%}
 
     <title>
-      {{ page_title }}
+      {%- if template == 'collection' and collection.handle == 'all' -%}Shop{%- else -%}{{ page_title }}{%- endif -%}
       {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
       {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
       {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
@@ -84,6 +84,16 @@
       {{ body_font_bold_italic | font_face: font_display: 'swap' }}
       {{ settings.type_header_font | font_face: font_display: 'swap' }}
 
+      /* A plain "&" for headings: only the ampersand (U+0026) is taken from the body font, everything else stays in the heading font. */
+      @font-face {
+        font-family: 'Sienna Amp';
+        src: url('{{ settings.type_body_font | font_url }}') format('woff2');
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+        unicode-range: U+0026;
+      }
+
       {% for scheme in settings.color_schemes -%}
         {% assign scheme_classes = scheme_classes | append: ', .color-' | append: scheme.id %}
         {% if forloop.index == 1 -%}
@@ -135,7 +145,7 @@
         --font-body-weight: {{ settings.type_body_font.weight }};
         --font-body-weight-bold: {{ settings.type_body_font.weight | plus: 300 | at_most: 1000 }};
 
-        --font-heading-family: {{ settings.type_header_font.family }}, {{ settings.type_header_font.fallback_families }};
+        --font-heading-family: 'Sienna Amp', {{ settings.type_header_font.family }}, {{ settings.type_header_font.fallback_families }};
         --font-heading-style: {{ settings.type_header_font.style }};
         --font-heading-weight: {{ settings.type_header_font.weight }};
 
@@ -293,6 +303,17 @@
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
     {{ 'sienna.css' | asset_url | stylesheet_tag }}
+    {{ 'sienna-2.css' | asset_url | stylesheet_tag }}
+    {%- if template.name == 'page' and template.suffix == 'contact' -%}
+      <script>
+        window.location.replace('{{ routes.root_url }}#contact');
+      </script>
+    {%- endif -%}
+    <style>
+      :root {
+        --s-mark: url('{{ 'sienna-logo-badge.svg' | asset_url }}');
+      }
+    </style>
     <link rel="stylesheet" href="{{ 'component-cart-items.css' | asset_url }}" media="print" onload="this.media='all'">
 
     {%- if settings.cart_type == 'drawer' -%}

@@ -11,6 +11,30 @@
   "name": "t:sections.header.name",
   "type": "header",
   "sections": {
+    "marquee": {
+      "type": "sienna-marquee",
+      "blocks": {
+        "m1": {
+          "type": "message",
+          "settings": {
+            "text": "Coming soon"
+          }
+        },
+        "m3": {
+          "type": "message",
+          "settings": {
+            "text": "Lamps, personalized gifts and little surprises"
+          }
+        }
+      },
+      "block_order": [
+        "m1",
+        "m3"
+      ],
+      "settings": {
+        "speed": 120
+      }
+    },
     "announcement-bar": {
       "type": "announcement-bar",
       "blocks": {
@@ -56,6 +80,7 @@
     }
   },
   "order": [
+    "marquee",
     "announcement-bar",
     "header"
   ]

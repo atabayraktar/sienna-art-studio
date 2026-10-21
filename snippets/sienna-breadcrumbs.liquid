@@ -1,0 +1,67 @@
+{%- comment -%}
+  Breadcrumbs for a product: Main category > Sub category.
+  Finds the product's collections in the same table the header menu uses.
+{%- endcomment -%}
+{%- liquid
+  assign main_labels = 'Home & Lighting^Personalized Gifts^Toys & Kids^Home Decor' | split: '^'
+  assign main_handles = 'all-lamps^personalized-gifts^toys-kids^home-decor' | split: '^'
+  assign main_extra_0 = 'all-lamps'
+  assign main_extra_1 = 'personalized-gifts'
+  assign main_extra_2 = 'toys-kids'
+  assign main_extra_3 = 'home-decor'
+
+  assign subs_0 = 'Mosaic & Stained Glass~mosaic-stained-glass^Modern Lamps~modern^Rechargeable Lamps~rechargeable^Crystal Glow Lamps~crystal-glow-lamps^Animal Stained Glass Lamps~animal-stained-glass-lamps' | split: '^'
+  assign subs_1 = 'Custom Art~custom-art-personalized-gifts^Personalized Gifts~personalized-gifts-all^Photo to Cartoon Portraits~photo-to-cartoon-portraits^Custom Products~custom-products' | split: '^'
+  assign subs_2 = 'Squishy Toys~squishy-toys^Mini Figures~mini-figures^Kids’ Night Lights~kids-night-lights' | split: '^'
+  assign subs_3 = 'Wall Art~wall-art^Decorative Accents~decorative-accents^Seasonal Decor~seasonal-decor^Gift Ideas~gift-ideas' | split: '^'
+
+  assign crumb_main = blank
+  assign crumb_main_url = blank
+  assign crumb_sub = blank
+  assign crumb_sub_url = blank
+
+  for g in (0..3)
+    case g
+      when 0
+        assign subs = subs_0
+      when 1
+        assign subs = subs_1
+      when 2
+        assign subs = subs_2
+      when 3
+        assign subs = subs_3
+    endcase
+    for s in subs
+      assign sp = s | split: '~'
+      for c in product.collections
+        if c.handle == sp[1] and crumb_sub == blank
+          assign crumb_sub = sp[0]
+          assign crumb_sub_url = c.url
+          assign crumb_main = main_labels[g]
+          assign crumb_main_url = routes.collections_url | append: '/' | append: main_handles[g]
+        endif
+      endfor
+    endfor
+  endfor
+
+  if crumb_main == blank
+    for g in (0..3)
+      for c in product.collections
+        if c.handle == main_handles[g] and crumb_main == blank
+          assign crumb_main = main_labels[g]
+          assign crumb_main_url = c.url
+        endif
+      endfor
+    endfor
+  endif
+-%}
+{%- if crumb_main != blank -%}
+  <nav class="s-crumbs" aria-label="Breadcrumb">
+    <ol class="s-crumbs__list">
+      <li><a href="{{ crumb_main_url }}">{{ crumb_main }}</a></li>
+      {%- if crumb_sub != blank -%}
+        <li><a href="{{ crumb_sub_url }}">{{ crumb_sub }}</a></li>
+      {%- endif -%}
+    </ol>
+  </nav>
+{%- endif -%}

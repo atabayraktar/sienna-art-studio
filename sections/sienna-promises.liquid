@@ -20,7 +20,11 @@
             <h3 class="s-promise__title">{{ block.settings.title }}</h3>
             <p class="s-promise__text">{{ block.settings.text }}</p>
             {%- if block.settings.link_label != blank -%}
-              <a class="s-promise__link" href="{{ block.settings.link | default: routes.root_url }}">{{ block.settings.link_label }}</a>
+              {%- assign promise_href = block.settings.link | default: routes.root_url -%}
+              {%- if promise_href contains '/pages/contact' -%}
+                {%- assign promise_href = routes.root_url | append: '#contact' -%}
+              {%- endif -%}
+              <a class="s-promise__link" href="{{ promise_href }}">{{ block.settings.link_label }}</a>
             {%- endif -%}
           </li>
         {%- endfor -%}

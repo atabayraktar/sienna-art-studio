@@ -13,26 +13,8 @@
   "sections": {
     "footer": {
       "type": "footer",
-      "blocks": {
-        "shop": {
-          "type": "link_list",
-          "settings": {
-            "heading": "Shop",
-            "menu": "main-menu"
-          }
-        },
-        "help": {
-          "type": "link_list",
-          "settings": {
-            "heading": "Help",
-            "menu": "footer"
-          }
-        }
-      },
-      "block_order": [
-        "shop",
-        "help"
-      ],
+      "blocks": {},
+      "block_order": [],
       "settings": {
         "color_scheme": "scheme-5",
         "newsletter_enable": false,

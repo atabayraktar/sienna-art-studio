@@ -15,9 +15,6 @@
 <section class="s-feature s-feature--{{ section.settings.tint }}{% if section.settings.reverse %} is-reverse{% endif %}">
   <div class="s-feature__grid page-width">
     <div class="s-feature__copy">
-      {%- if section.settings.eyebrow != blank -%}
-        <p class="s-feature__eyebrow">{{ section.settings.eyebrow }}</p>
-      {%- endif -%}
       <h2 class="s-feature__title">{{ section.settings.heading }}</h2>
       <p class="s-feature__text">{{ section.settings.text }}</p>
 
@@ -83,7 +80,6 @@
 {
   "name": "Sienna feature",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Small label" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "Made for them" },
     { "type": "textarea", "id": "text", "label": "Text" },
     { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop now" },

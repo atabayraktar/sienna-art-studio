@@ -65,7 +65,6 @@
         {%- endif -%}
       </div>
       <figure class="s-hero__frame" data-depth="2">
-        <span class="s-hero__outline" aria-hidden="true"></span>
         {%- if main_img != blank -%}
           {{
             main_img
@@ -83,12 +82,6 @@
         {%- endif -%}
         <span class="s-hero__bloom" aria-hidden="true"></span>
       </figure>
-      {%- if section.settings.tag_title != blank -%}
-        <a class="s-hero__tag" href="{{ section.settings.tag_link | default: routes.collections_url }}" data-depth="3">
-          <span class="s-hero__tag-title">{{ section.settings.tag_title }}</span>
-          <span class="s-hero__tag-sub">{{ section.settings.tag_text }}</span>
-        </a>
-      {%- endif -%}
     </div>
   </div>
 </section>
@@ -102,7 +95,7 @@
     { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Discover unique gifts, beautiful lighting, personalized creations, and little surprises you'll love." },
     { "type": "text", "id": "button_label", "label": "Primary button label", "default": "Shop now" },
     { "type": "url", "id": "button_link", "label": "Primary button link" },
-    { "type": "text", "id": "button_label_2", "label": "Secondary button label", "default": "Explore gifts" },
+    { "type": "text", "id": "button_label_2", "label": "Secondary button label", "default": "Personalized gifts" },
     { "type": "url", "id": "button_link_2", "label": "Secondary button link" },
     { "type": "header", "content": "Main image" },
     { "type": "image_picker", "id": "image", "label": "Image (lifestyle photo)" },

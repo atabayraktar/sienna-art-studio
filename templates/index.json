@@ -17,8 +17,8 @@
         "subheading": "Discover unique gifts, beautiful lighting, personalized creations, and little surprises you'll love.",
         "button_label": "Shop now",
         "button_link": "shopify://collections/all",
-        "button_label_2": "Explore gifts",
-        "button_link_2": "shopify://collections/custom-art-personalized-gifts",
+        "button_label_2": "Personalized gifts",
+        "button_link_2": "shopify://collections/personalized-gifts",
         "product": "sapphire-bloom-mosaic-lamp",
         "product_back": "emerald-mosaic-star-lamp",
         "image_alt": "A lit mosaic lamp throwing colored patterns across a wall",
@@ -44,6 +44,8 @@
           "type": "category",
           "settings": {
             "collection": "custom-art-personalized-gifts",
+            "zoom": 126,
+            "focus": "center",
             "title": "Personalized Gifts",
             "caption": "Custom art made from your photos",
             "tint": "blush"
@@ -52,6 +54,7 @@
         "c3": {
           "type": "category",
           "settings": {
+            "product": "giant-strawberry-squishy",
             "collection": "squishy-toys",
             "title": "Toys & Kids",
             "caption": "Squishy toys and little lights",
@@ -76,8 +79,8 @@
         "c4"
       ],
       "settings": {
-        "title": "Shop by category",
-        "link_label": "All products",
+        "title": "",
+        "link_label": "",
         "link_url": "shopify://collections/all"
       }
     },
@@ -140,11 +143,10 @@
         "s3"
       ],
       "settings": {
-        "eyebrow": "Personalized gifts",
         "heading": "A gift made from your photo",
         "text": "Send us a favorite picture and we turn it into a portrait of the people in it. It is the kind of present that gets framed instead of put in a drawer.",
-        "button_label": "Shop personalized gifts",
-        "button_link": "shopify://collections/custom-art-personalized-gifts",
+        "button_label": "Create your portrait",
+        "button_link": "shopify://products/custom-couple-portrait-from-photo-personalized-cartoon-art-gift",
         "collection": "custom-art-personalized-gifts",
         "product": "custom-couple-portrait-from-photo-personalized-cartoon-art-gift",
         "image_alt": "A custom cartoon portrait of a couple",
@@ -157,45 +159,16 @@
       "blocks": {},
       "block_order": [],
       "settings": {
-        "eyebrow": "Toys & kids",
         "heading": "Little things, big smiles",
         "text": "Squishy toys that slow-rise, crunch and bounce back, for pockets, desks and birthday bags. Bedtime night lights are on their way.",
         "button_label": "Shop toys & kids",
-        "button_link": "shopify://collections/squishy-toys",
+        "button_link": "shopify://collections/toys-kids",
         "collection": "squishy-toys",
         "tint": "lavender",
         "reverse": true,
         "collage_1": "giant-banana-squishy",
         "collage_2": "giant-strawberry-squishy",
         "collage_3": "crunchy-corn"
-      }
-    },
-    "arrivals": {
-      "type": "featured-collection",
-      "settings": {
-        "collection": "squishy-toys",
-        "products_to_show": 4,
-        "title": "Squishy toys",
-        "heading_size": "h1",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "columns_desktop": 4,
-        "enable_desktop_slider": false,
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "outline",
-        "color_scheme": "scheme-1",
-        "image_ratio": "square",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "standard",
-        "columns_mobile": "2",
-        "swipe_on_mobile": true,
-        "padding_top": 24,
-        "padding_bottom": 24
       }
     },
     "promises": {
@@ -246,36 +219,10 @@
       }
     },
     "sienna_list": {
-      "type": "newsletter",
-      "blocks": {
-        "h": {
-          "type": "heading",
-          "settings": {
-            "heading": "Join the Sienna List",
-            "heading_size": "h1"
-          }
-        },
-        "p": {
-          "type": "paragraph",
-          "settings": {
-            "text": "<p>New arrivals, gift ideas and the occasional offer. No spam.</p>"
-          }
-        },
-        "f": {
-          "type": "email_form",
-          "settings": {}
-        }
-      },
-      "block_order": [
-        "h",
-        "p",
-        "f"
-      ],
+      "type": "sienna-list",
       "settings": {
-        "color_scheme": "scheme-4",
-        "full_width": true,
-        "padding_top": 64,
-        "padding_bottom": 64
+        "heading": "Join the Sienna List",
+        "text": "New arrivals, gift ideas and the occasional offer. No spam."
       }
     },
     "wall": {
@@ -333,7 +280,6 @@
     "featured",
     "gifts",
     "nightlights",
-    "arrivals",
     "promises",
     "reviews",
     "sienna_list"

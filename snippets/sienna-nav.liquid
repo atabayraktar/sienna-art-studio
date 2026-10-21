@@ -15,27 +15,31 @@
 {%- if mode == 'desktop' -%}
   <nav class="sn" aria-label="Main">
     <ul class="sn__list">
-      <li class="sn__item">
-        <a class="sn__link{% if request.page_type == 'index' %} is-current{% endif %}" href="{{ routes.root_url }}">Home</a>
+      <li class="sn__item sn__item--has-panel" data-sn-item>
+        <button
+          class="sn__link"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="SiennaShopPanel"
+          data-sn-trigger
+        >
+          Shop
+          <svg class="sn__caret" width="9" height="6" viewBox="0 0 9 6" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </li>
       {%- for g in groups -%}
         {%- assign gp = g | split: '~' -%}
-        <li class="sn__item sn__item--has-panel" data-sn-item>
-          <a
-            class="sn__link"
-            href="{{ routes.collections_url }}/{{ gp[1] }}"
-            aria-haspopup="true"
-            aria-expanded="false"
-            data-sn-trigger="{{ forloop.index0 }}"
-          >
-            {{- gp[0] -}}
-            <svg class="sn__caret" width="9" height="6" viewBox="0 0 9 6" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
+        <li class="sn__item">
+          <a class="sn__link" href="{{ routes.collections_url }}/{{ gp[1] }}">{{ gp[0] }}</a>
         </li>
       {%- endfor -%}
+      <li class="sn__item">
+        <a class="sn__link" href="{{ routes.root_url }}#contact">Contact</a>
+      </li>
     </ul>
 
-    <div class="sn-panel" data-sn-panel hidden>
+    <div class="sn-panel" id="SiennaShopPanel" data-sn-panel hidden>
       <div class="sn-panel__inner page-width">
         {%- for g in groups -%}
           {%- liquid
@@ -66,8 +70,9 @@
           -%}
           <section class="sn-col" data-sn-col="{{ idx }}">
             <a class="sn-col__hero" href="{{ routes.collections_url }}/{{ gp[1] }}" tabindex="-1" aria-hidden="true">
-              {%- if top_img != blank -%}
-                {{ top_img | image_url: width: 520 | image_tag: loading: 'lazy', widths: '260, 390, 520', sizes: '260px', alt: '' }}
+              {%- capture top_photo -%}{%- render 'sienna-photo', top: idx, width: 640, sizes: '300px' -%}{%- endcapture -%}
+              {%- if top_photo != blank -%}
+                {{ top_photo }}
               {%- else -%}
                 <span class="sn-col__ph" aria-hidden="true">{{ gp[0] | slice: 0 }}</span>
               {%- endif -%}
@@ -81,13 +86,12 @@
                 {%- assign sc = collections[sp[1]] -%}
                 <li>
                   <a class="sn-sub" href="{{ routes.collections_url }}/{{ sp[1] }}">
-                    <span class="sn-sub__thumb">
-                      {%- if sc.featured_image != blank -%}
-                        {{ sc.featured_image | image_url: width: 120 | image_tag: loading: 'lazy', width: 48, height: 48, alt: '' }}
-                      {%- else -%}
-                        <span class="sn-sub__ph" aria-hidden="true">{{ sp[0] | slice: 0 }}</span>
-                      {%- endif -%}
-                    </span>
+                    {%- capture sub_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 160, sizes: '48px' -%}{%- endcapture -%}
+                    {%- if sub_photo != blank -%}
+                      <span class="sn-sub__thumb">{{ sub_photo }}</span>
+                    {%- else -%}
+                      <span class="sn-sub__thumb sn-sub__thumb--empty" aria-hidden="true"></span>
+                    {%- endif -%}
                     <span class="sn-sub__text">
                       <span class="sn-sub__name">{{ sp[0] }}</span>
                       <span class="sn-sub__desc">{{ sp[2] }}</span>
@@ -116,7 +120,6 @@
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l12 12M15 3L3 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </button>
       </div>
-      <a class="sm__home" href="{{ routes.root_url }}">Home</a>
       {%- for g in groups -%}
         {%- liquid
           assign gp = g | split: '~'
@@ -146,6 +149,7 @@
         </details>
       {%- endfor -%}
       <div class="sm__foot">
+        <a href="{{ routes.root_url }}#contact" data-sm-close>Contact</a>
         <a href="{{ routes.account_url }}">Account</a>
         <a href="{{ routes.cart_url }}">Cart</a>
         <a href="{{ routes.search_url }}">Search</a>

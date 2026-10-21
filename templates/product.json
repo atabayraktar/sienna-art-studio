@@ -12,11 +12,10 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "vendor": {
-          "type": "text",
+        "crumbs": {
+          "type": "custom_liquid",
           "settings": {
-            "text": "{{ product.vendor }}",
-            "text_style": "uppercase"
+            "custom_liquid": "{% render 'sienna-breadcrumbs' %}"
           }
         },
         "title": {
@@ -57,7 +56,7 @@
         }
       },
       "block_order": [
-        "vendor",
+        "crumbs",
         "title",
         "price",
         "variant_picker",
@@ -72,11 +71,11 @@
         "media_size": "large",
         "constrain_to_viewport": true,
         "media_fit": "contain",
-        "gallery_layout": "stacked",
-        "mobile_thumbnails": "hide",
+        "gallery_layout": "thumbnail_slider",
+        "mobile_thumbnails": "show",
         "media_position": "left",
         "image_zoom": "lightbox",
-        "hide_variants": true,
+        "hide_variants": false,
         "enable_video_looping": false,
         "padding_top": 36,
         "padding_bottom": 12

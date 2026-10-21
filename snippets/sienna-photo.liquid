@@ -1,0 +1,25 @@
+{%- comment -%}
+  Real product photo for a collection or a main category. No generated images.
+  Params: handle (collection handle) or top (0-3 for the four main categories), width, sizes.
+  A collection with no products renders nothing, so the caller shows no picture for it.
+{%- endcomment -%}
+{%- liquid
+  assign top_products = 'sapphire-bloom-mosaic-lamp^custom-couple-portrait-from-photo-personalized-cartoon-art-gift^giant-banana-squishy^tiffany-table-lamp' | split: '^'
+  assign img = blank
+  if top != blank
+    assign img = all_products[top_products[top]].featured_image
+  else
+    assign col = collections[handle]
+    if col.products_count > 0
+      assign img = col.featured_image
+      if img == blank
+        assign img = col.products.first.featured_image
+      endif
+    endif
+  endif
+  assign w = width | default: 520
+  assign sz = sizes | default: '260px'
+-%}
+{%- if img != blank -%}
+  {{ img | image_url: width: w | image_tag: loading: 'lazy', widths: '120, 260, 520, 800', sizes: sz, alt: '' }}
+{%- endif -%}
