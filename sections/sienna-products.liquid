@@ -1,0 +1,85 @@
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'template-collection.css' | asset_url | stylesheet_tag }}
+{{ 'quick-add.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign n = section.blocks.size
+  if n > 4
+    assign cols = 5
+  else
+    assign cols = 4
+  endif
+-%}
+<section class="s-products collection">
+  <div class="page-width">
+    {%- if section.settings.title != blank or section.settings.link_label != blank -%}
+      <header class="s-head">
+        {%- if section.settings.title != blank -%}
+          <h2 class="s-head__title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+        {%- if section.settings.link_label != blank -%}
+          <a class="s-head__link s-head__link--more" href="{{ section.settings.link_url | default: routes.collections_url }}">
+            {{- section.settings.link_label -}}
+            <svg width="7" height="11" viewBox="0 0 7 11" aria-hidden="true"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <ul
+      class="grid product-grid contains-card contains-card--product{% if settings.card_style == 'standard' %} contains-card--standard{% endif %} grid--{{ cols }}-col-desktop grid--2-col-tablet-down"
+      role="list"
+    >
+      {%- assign skip_card_product_styles = false -%}
+      {%- for block in section.blocks -%}
+        {%- assign product = block.settings.product -%}
+        {%- if product != blank -%}
+          <li class="grid__item" {{ block.shopify_attributes }}>
+            {% render 'card-product',
+              card_product: product,
+              media_aspect_ratio: 'square',
+              image_shape: 'default',
+              lazy_load: true,
+              show_secondary_image: true,
+              show_vendor: false,
+              show_rating: false,
+              skip_styles: skip_card_product_styles,
+              section_id: section.id,
+              quick_add: 'standard',
+              product_view_context: 'collection'
+            %}
+          </li>
+          {%- assign skip_card_product_styles = true -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Sienna products",
+  "max_blocks": 5,
+  "settings": [
+    { "type": "text", "id": "title", "label": "Heading", "default": "Best sellers" },
+    { "type": "text", "id": "link_label", "label": "Link label (leave empty for no link)", "default": "Shop all" },
+    { "type": "url", "id": "link_url", "label": "Link" }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Product",
+      "settings": [{ "type": "product", "id": "product", "label": "Product" }]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Sienna products",
+      "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }]
+    }
+  ]
+}
+{% endschema %}

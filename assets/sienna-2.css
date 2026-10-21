@@ -3770,14 +3770,28 @@ html[data-theme='dark'] .collection .quick-add__details:hover {
   width: 3.6rem;
   height: 3.6rem;
   border-radius: 50%;
-  background: var(--s-gold);
-  color: #1e1a1c;
-  transition: transform 0.4s var(--s-ease), background 0.25s;
+  /* frosted glass chip with a thin diagonal arrow; on hover it fills gold and the arrow turns to point right */
+  background: rgba(24, 18, 20, 0.34);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: inset 0 0 0 1px rgba(250, 246, 238, 0.55);
+  color: #faf6ee;
+  transition: background 0.3s var(--s-ease), color 0.3s var(--s-ease), box-shadow 0.3s var(--s-ease),
+    transform 0.4s var(--s-ease);
+}
+.s-tile__go svg {
+  transition: transform 0.45s var(--s-ease);
 }
 .s-tile__link:hover .s-tile__go,
 .s-tile__link:focus-visible .s-tile__go {
-  background: #faf6ee;
-  transform: translateX(4px);
+  background: var(--s-gold);
+  color: #1e1a1c;
+  box-shadow: inset 0 0 0 1px var(--s-gold);
+  transform: scale(1.08);
+}
+.s-tile__link:hover .s-tile__go svg,
+.s-tile__link:focus-visible .s-tile__go svg {
+  transform: rotate(45deg);
 }
 .s-tile__link:focus-visible {
   outline: 2px solid var(--s-gold);
@@ -3816,4 +3830,30 @@ html[data-theme='dark'] .collection .quick-add__details:hover {
   .s-tile__go {
     transition: none;
   }
+}
+
+/* Best sellers / New arrivals: hand-picked product rows */
+.s-products {
+  padding: 6rem 0 5rem;
+}
+.s-products .page-width {
+  max-width: 140rem;
+  padding-inline: 2rem;
+}
+@media screen and (min-width: 990px) {
+  .s-products .page-width {
+    padding-inline: 4rem;
+  }
+}
+.s-head__link--more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.s-head__link--more svg {
+  transition: transform 0.25s var(--s-ease);
+}
+.s-head__link--more:hover svg,
+.s-head__link--more:focus-visible svg {
+  transform: translateX(3px);
 }

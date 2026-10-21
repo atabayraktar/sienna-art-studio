@@ -84,34 +84,6 @@
         "link_url": "shopify://collections/all"
       }
     },
-    "featured": {
-      "type": "featured-collection",
-      "settings": {
-        "collection": "all-lamps",
-        "products_to_show": 8,
-        "title": "Featured lamps",
-        "heading_size": "h1",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "columns_desktop": 4,
-        "enable_desktop_slider": false,
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "outline",
-        "color_scheme": "scheme-1",
-        "image_ratio": "square",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "standard",
-        "columns_mobile": "2",
-        "swipe_on_mobile": false,
-        "padding_top": 8,
-        "padding_bottom": 24
-      }
-    },
     "gifts": {
       "type": "sienna-feature",
       "blocks": {
@@ -225,61 +197,108 @@
         "text": "New arrivals, gift ideas and the occasional offer. No spam."
       }
     },
-    "wall": {
-      "type": "sienna-gallery",
+    "best_sellers": {
+      "type": "sienna-products",
       "blocks": {
-        "t0": {
-          "type": "tile",
+        "p1": {
+          "type": "product",
           "settings": {
             "product": "sapphire-bloom-mosaic-lamp"
           }
         },
-        "t1": {
-          "type": "tile",
+        "p2": {
+          "type": "product",
           "settings": {
-            "product": "emerald-mosaic-star-lamp"
+            "product": "custom-couple-portrait-from-photo-personalized-cartoon-art-gift"
           }
         },
-        "t2": {
-          "type": "tile",
+        "p3": {
+          "type": "product",
           "settings": {
-            "product": "carnival-mosaic-vase-lamp"
+            "product": "giant-banana-squishy"
           }
         },
-        "t3": {
-          "type": "tile",
+        "p4": {
+          "type": "product",
           "settings": {
             "product": "tiffany-table-lamp"
           }
         },
-        "t4": {
-          "type": "tile",
+        "p5": {
+          "type": "product",
           "settings": {
-            "product": "ring-crystal-glow-lamp"
+            "product": "swan-style-mosaic-table-lamp"
           }
         }
       },
       "block_order": [
-        "t0",
-        "t1",
-        "t2",
-        "t3",
-        "t4"
+        "p1",
+        "p2",
+        "p3",
+        "p4",
+        "p5"
       ],
       "settings": {
-        "title": "Light up the room",
-        "link_label": "All lamps",
-        "link_url": "shopify://collections/all-lamps"
+        "title": "Best sellers",
+        "link_label": "Shop all",
+        "link_url": "shopify://collections/all"
+      }
+    },
+    "new_arrivals": {
+      "type": "sienna-products",
+      "blocks": {
+        "p1": {
+          "type": "product",
+          "settings": {
+            "product": "carnival-mosaic-vase-lamp"
+          }
+        },
+        "p2": {
+          "type": "product",
+          "settings": {
+            "product": "giant-peach-squishy"
+          }
+        },
+        "p3": {
+          "type": "product",
+          "settings": {
+            "product": "giant-strawberry-squishy"
+          }
+        },
+        "p4": {
+          "type": "product",
+          "settings": {
+            "product": "emerald-mosaic-star-lamp"
+          }
+        },
+        "p5": {
+          "type": "product",
+          "settings": {
+            "product": "crunchy-corn"
+          }
+        }
+      },
+      "block_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4",
+        "p5"
+      ],
+      "settings": {
+        "title": "New arrivals",
+        "link_label": "Shop all",
+        "link_url": "shopify://collections/all"
       }
     }
   },
   "order": [
     "hero",
     "categories",
-    "wall",
-    "featured",
     "gifts",
+    "best_sellers",
     "nightlights",
+    "new_arrivals",
     "promises",
     "reviews",
     "sienna_list"
