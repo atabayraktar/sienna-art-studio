@@ -60,6 +60,7 @@
                     aria-describedby="a11y-refresh-page-message"
                   >
                     {%- for option in collection.sort_options -%}
+{%- if option.value == 'manual' or option.value == 'relevance' -%}{%- continue -%}{%- endif -%}
                       <option
                         value="{{ option.value | escape }}"
                         {% if option.value == sort_by %}
@@ -101,6 +102,9 @@
         </facet-filters-form>
       {%- endif -%}
 
+      <div class="s-shop page-width">
+      {%- render 'sienna-nav', mode: 'sidebar' -%}
+      <div class="s-shop__main">
       <div class="{% if section.settings.filter_type == 'vertical' %} facets-vertical page-width{% endif %}">
         {{ 'component-facets.css' | asset_url | stylesheet_tag }}
         <script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
@@ -199,6 +203,8 @@
             </div>
           {%- endif -%}
         </div>
+      </div>
+      </div>
       </div>
     {%- endpaginate -%}
     {% if section.settings.image_shape == 'arch' %}

@@ -396,3 +396,13 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+/* Collection category sidebar: always open on desktop, collapsible on mobile */
+(function () {
+  var d = document.querySelector('[data-s-side]');
+  if (!d) return;
+  var mq = window.matchMedia('(min-width: 990px)');
+  function sync() { d.open = mq.matches; }
+  sync();
+  mq.addEventListener('change', sync);
+})();

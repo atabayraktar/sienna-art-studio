@@ -3857,3 +3857,105 @@ html[data-theme='dark'] .collection .quick-add__details:hover {
 .s-head__link--more:focus-visible svg {
   transform: translateX(3px);
 }
+
+/* ---------- Mega panel: shop all button ---------- */
+.sn-panel__foot {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.2rem;
+}
+.sn-panel__shopall {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1rem 2.2rem;
+  border-radius: var(--s-r);
+  background: var(--s-gold);
+  color: #1e1a1c;
+  font: 600 1.3rem/1 var(--font-body-family);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.sn-panel__shopall:hover,
+.sn-panel__shopall:focus-visible {
+  background: var(--s-ink);
+  color: var(--s-cream);
+}
+html[data-theme='dark'] .sn-panel__shopall:hover,
+html[data-theme='dark'] .sn-panel__shopall:focus-visible {
+  background: #f6eee0;
+  color: #1e1a1c;
+}
+
+/* ---------- Collection page: category sidebar ---------- */
+.s-shop {
+  display: block;
+}
+.s-shop__main {
+  min-width: 0;
+}
+.s-shop__main .page-width {
+  padding-left: 0;
+  padding-right: 0;
+  max-width: none;
+}
+.s-side {
+  margin-bottom: 2rem;
+}
+.s-side__toggle {
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--s-line);
+  border-radius: var(--s-r);
+  font: 600 1.4rem/1 var(--font-body-family);
+  color: var(--s-ink);
+  cursor: pointer;
+}
+.s-side__wrap[open] .s-side__toggle {
+  margin-bottom: 1rem;
+}
+.s-side__all,
+.s-side__head {
+  display: block;
+  padding: 0.6rem 0;
+  font: 600 1.45rem/1.3 var(--font-body-family);
+  color: var(--s-ink);
+  text-decoration: none;
+}
+.s-side__group {
+  margin-top: 1.2rem;
+}
+.s-side__subs {
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0 0 0 1rem;
+  border-left: 1px solid var(--s-line);
+}
+.s-side__sub {
+  display: block;
+  padding: 0.45rem 0;
+  font: 400 1.35rem/1.3 var(--font-body-family);
+  color: var(--s-ink-soft);
+  text-decoration: none;
+}
+.s-side a:hover {
+  color: var(--s-gold-deep);
+}
+.s-side .is-current {
+  color: var(--s-gold-deep);
+  font-weight: 700;
+}
+@media screen and (min-width: 990px) {
+  .s-shop {
+    display: grid;
+    grid-template-columns: 22rem minmax(0, 1fr);
+    gap: 4rem;
+    align-items: start;
+  }
+  .s-side {
+    position: sticky;
+    top: 10rem;
+  }
+  .s-side__toggle {
+    display: none;
+  }
+}

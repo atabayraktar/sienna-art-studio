@@ -12,7 +12,34 @@
   assign subs_3 = 'Wall Art~wall-art~Prints and framed pieces^Decorative Accents~decorative-accents~Shelf and table pieces^Seasonal Decor~seasonal-decor~For every holiday^Gift Ideas~gift-ideas~Ready to wrap' | split: '^'
 -%}
 
-{%- if mode == 'desktop' -%}
+{%- if mode == 'title' -%}
+  {%- liquid
+    for g in groups
+      assign gp = g | split: '~'
+      if gp[1] == handle
+        echo gp[0]
+        break
+      endif
+      case forloop.index0
+        when 0
+          assign subs = subs_0
+        when 1
+          assign subs = subs_1
+        when 2
+          assign subs = subs_2
+        when 3
+          assign subs = subs_3
+      endcase
+      for s in subs
+        assign sp = s | split: '~'
+        if sp[1] == handle
+          echo sp[0]
+          break
+        endif
+      endfor
+    endfor
+  -%}
+{%- elsif mode == 'desktop' -%}
   <nav class="sn" aria-label="Main">
     <ul class="sn__list">
       <li class="sn__item sn__item--has-panel" data-sn-item>
@@ -103,7 +130,44 @@
           </section>
         {%- endfor -%}
       </div>
+      <div class="sn-panel__foot page-width">
+        <a class="sn-panel__shopall" href="{{ routes.all_products_collection_url }}">
+          Shop all products
+          <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true"><path d="M1 5h12M9 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
     </div>
+  </nav>
+{%- elsif mode == 'sidebar' -%}
+  <nav class="s-side" aria-label="Categories">
+    <details class="s-side__wrap" data-s-side>
+      <summary class="s-side__toggle">Categories</summary>
+      <a class="s-side__all{% if collection.handle == 'all' %} is-current{% endif %}" href="{{ routes.all_products_collection_url }}">All products</a>
+      {%- for g in groups -%}
+        {%- liquid
+          assign gp = g | split: '~'
+          case forloop.index0
+            when 0
+              assign subs = subs_0
+            when 1
+              assign subs = subs_1
+            when 2
+              assign subs = subs_2
+            when 3
+              assign subs = subs_3
+          endcase
+        -%}
+        <div class="s-side__group">
+          <a class="s-side__head{% if collection.handle == gp[1] %} is-current{% endif %}" href="{{ routes.collections_url }}/{{ gp[1] }}">{{ gp[0] }}</a>
+          <ul class="s-side__subs">
+            {%- for s in subs -%}
+              {%- assign sp = s | split: '~' -%}
+              <li><a class="s-side__sub{% if collection.handle == sp[1] %} is-current{% endif %}" href="{{ routes.collections_url }}/{{ sp[1] }}"{% if collection.handle == sp[1] %} aria-current="page"{% endif %}>{{ sp[0] }}</a></li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endfor -%}
+    </details>
   </nav>
 {%- else -%}
   <button class="sm-toggle" type="button" aria-expanded="false" aria-controls="SiennaDrawer" data-sm-open>

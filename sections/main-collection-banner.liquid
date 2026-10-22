@@ -14,7 +14,8 @@
     <div class="collection-hero__text-wrapper">
       <h1 class="collection-hero__title">
         <span class="visually-hidden">{{ 'sections.collection_template.title' | t }}: </span>
-        {%- if collection.handle == 'all' -%}Shop{%- else -%}{{- collection.title | escape -}}{%- endif -%}
+        {%- capture nav_title -%}{%- render 'sienna-nav', mode: 'title', handle: collection.handle -%}{%- endcapture -%}
+        {%- if collection.handle == 'all' -%}Shop{%- elsif nav_title != blank -%}{{- nav_title | escape -}}{%- else -%}{{- collection.title | escape -}}{%- endif -%}
       </h1>
 
       {%- if section.settings.show_collection_description -%}
