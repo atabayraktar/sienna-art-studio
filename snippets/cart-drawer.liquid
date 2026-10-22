@@ -27,6 +27,21 @@
       aria-label="{{ 'sections.cart.title' | t }}"
       tabindex="-1"
     >
+      <div class="sm__top s-cd__top">
+        <a class="sm__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }}">
+          <span class="sienna-logo sienna-logo--light" aria-hidden="true">
+            <img class="sienna-logo__text" src="{{ 'sienna-logo-text-light.svg' | asset_url }}" alt="" width="112" height="58">
+            <img class="sienna-logo__star" src="{{ 'sienna-logo-star.svg' | asset_url }}" alt="" width="24" height="24">
+          </span>
+          <span class="sienna-logo sienna-logo--dark" aria-hidden="true">
+            <img class="sienna-logo__text" src="{{ 'sienna-logo-text-dark.svg' | asset_url }}" alt="" width="112" height="58">
+            <img class="sienna-logo__star" src="{{ 'sienna-logo-star.svg' | asset_url }}" alt="" width="24" height="24">
+          </span>
+        </a>
+        <button class="sm__close" type="button" onclick="this.closest('cart-drawer').close()" aria-label="{{ 'accessibility.close' | t }}">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l12 12M15 3L3 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
       {%- if cart == empty -%}
         <div class="drawer__inner-empty">
           <div class="cart-drawer__warnings center{% if settings.cart_drawer_collection != blank %} cart-drawer__warnings--has-collection{% endif %}">

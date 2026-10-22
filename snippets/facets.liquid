@@ -405,7 +405,7 @@
                     aria-describedby="a11y-refresh-page-message"
                   >
                     {%- for option in results.sort_options -%}
-{%- if option.value == 'manual' or option.value == 'relevance' -%}{%- continue -%}{%- endif -%}
+{%- if option.value == 'manual' or option.value == 'relevance' or option.value == 'most-relevant' -%}{%- continue -%}{%- endif -%}
                       <option
                         value="{{ option.value | escape }}"
                         {% if option.value == sort_by %}
@@ -739,7 +739,7 @@
                           aria-describedby="a11y-refresh-page-message"
                         >
                           {%- for option in results.sort_options -%}
-{%- if option.value == 'manual' or option.value == 'relevance' -%}{%- continue -%}{%- endif -%}
+{%- if option.value == 'manual' or option.value == 'relevance' or option.value == 'most-relevant' -%}{%- continue -%}{%- endif -%}
                             <option
                               value="{{ option.value | escape }}"
                               {% if option.value == sort_by %}
@@ -847,7 +847,7 @@
                 aria-describedby="a11y-refresh-page-message"
               >
                 {%- for option in results.sort_options -%}
-{%- if option.value == 'manual' or option.value == 'relevance' -%}{%- continue -%}{%- endif -%}
+{%- if option.value == 'manual' or option.value == 'relevance' or option.value == 'most-relevant' -%}{%- continue -%}{%- endif -%}
                   <option
                     value="{{ option.value | escape }}"
                     {% if option.value == sort_by %}

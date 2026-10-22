@@ -3959,3 +3959,1187 @@ html[data-theme='dark'] .sn-panel__shopall:focus-visible {
     display: none;
   }
 }
+
+/* ---------- Mobile header: logo left; lights, search, account, cart, menu right ---------- */
+@media screen and (max-width: 989px) {
+  .section-header .header {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    column-gap: 0;
+    padding: 1rem 1.2rem;
+  }
+  .section-header .header > .header__search {
+    display: none !important;
+  }
+  .section-header .header > .header__heading,
+  .section-header .header > .header__heading-link {
+    order: 0;
+    margin: 0 auto 0 0;
+    justify-self: auto;
+    grid-column: auto;
+  }
+  .section-header .header > .header__icons {
+    order: 1;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+  .section-header .header > .sm-toggle {
+    order: 2;
+    margin: 0;
+    flex: none;
+  }
+  .section-header .header > .header__icons .header__search {
+    display: flex !important;
+  }
+  .section-header .header__icons .header__icon,
+  .section-header .header__icons .header__icon--account {
+    display: flex;
+    width: 4rem;
+    height: 4.4rem;
+  }
+  .section-header .header__icons {
+    gap: 0.2rem;
+  }
+  .section-header .header > .sm-toggle {
+    width: 4.2rem;
+    margin-left: 0.2rem;
+  }
+  .section-header .header .sienna-logo {
+    width: 10.4rem;
+  }
+  .section-header:has(.sm:not([hidden])) {
+    z-index: 1000;
+  }
+  .sm__sheet {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    padding: 1.6rem 2.4rem 4rem;
+  }
+}
+
+/* ---------- Mobile menu: bigger logo, photo boxes next to categories ---------- */
+.sm__logo {
+  display: block;
+}
+.sm__gname {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+.sm__thumb {
+  flex: none;
+  width: 5.6rem;
+  height: 5.6rem;
+  border-radius: var(--s-r);
+  overflow: hidden;
+  background: var(--s-sand);
+}
+.sm__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.sm__thumb--sm {
+  width: 4.2rem;
+  height: 4.2rem;
+}
+.sm__group li a.sm__sub {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.6rem 0;
+}
+.sm__group summary,
+.sm__home {
+  font-size: 2.1rem;
+}
+.sm__thumb {
+  width: 5rem;
+  height: 5rem;
+}
+
+/* Mobile menu: sub-category dropdowns on a tinted panel */
+.sm__group ul {
+  margin: 0.8rem 0 1rem;
+  padding: 1rem 1.4rem 1.2rem;
+  border-radius: var(--s-r);
+  background: rgba(198, 167, 123, 0.18);
+  border-left: 3px solid var(--s-gold);
+}
+html[data-theme='dark'] .sm__group ul {
+  background: rgba(198, 167, 123, 0.12);
+}
+
+/* Mobile menu: calmer sub-category panels (overrides the tinted version above) */
+.sm__group ul,
+html[data-theme='dark'] .sm__group ul {
+  margin: 0.6rem 0 1.2rem;
+  padding: 0.8rem 1.6rem 1rem;
+  border: 0;
+  border-radius: 1.6rem;
+  background: var(--s-sand);
+}
+.sm__group ul .sm__thumb {
+  background: var(--s-cream);
+}
+
+/* Mobile: the logo star turns by itself every few seconds (desktop keeps the hover turn) */
+.section-header .header .sm__top .sienna-logo,
+.sm__top .sienna-logo {
+  width: 14rem;
+}
+html[data-theme='dark'] .sm__top .sienna-logo img {
+  filter: none;
+}
+@keyframes s-star-turn {
+  0%,
+  82% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@media screen and (max-width: 989px) {
+  .header__heading-link .sienna-logo__star,
+  .sm__logo .sienna-logo__star {
+    animation: s-star-turn 6s var(--s-ease) infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header__heading-link .sienna-logo__star,
+  .sm__logo .sienna-logo__star {
+    animation: none;
+  }
+}
+
+/* Mobile search results: small gap on both sides instead of edge to edge */
+@media screen and (max-width: 989px) {
+  .search-modal__form .predictive-search,
+  predictive-search .predictive-search,
+  .predictive-search--header {
+    left: 1.2rem !important;
+    right: 1.2rem !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+/* Mobile search field: no floating "Search" label once focused or filled, text centered in the box */
+@media screen and (max-width: 989px) {
+  .search__input:focus ~ .field__label,
+  .search__input:not(:placeholder-shown) ~ .field__label {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .search__input:focus::placeholder {
+    color: transparent;
+  }
+  .search__input.field__input {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+/* Mobile cart drawer: full screen */
+@media screen and (max-width: 749px) {
+  cart-drawer .cart-drawer {
+    width: 100%;
+    max-width: 100%;
+    flex: 1 0 100%;
+  }
+  cart-drawer .drawer__inner,
+  .cart-drawer .drawer__inner {
+    width: 100%;
+    max-width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    border-width: 0;
+  }
+}
+
+/* Mobile account popup: no leftover min-height from the first open (it is set inline by Shopify's component) */
+@media screen and (max-width: 749px) {
+  shopify-account::part(dialog) {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}
+
+/* Mobile menu: main categories as wide boxes instead of a plain list */
+.sm__group {
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--s-line);
+  border-radius: 1.8rem;
+  background: var(--s-card);
+  overflow: hidden;
+}
+.sm__group summary {
+  padding: 1rem 1.4rem 1rem 1rem;
+  border-bottom: 0;
+}
+.sm__group .sm__gname .sm__thumb {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 1.2rem;
+}
+.sm__group ul,
+html[data-theme='dark'] .sm__group ul {
+  margin: 0 1rem 1rem;
+}
+
+/* Mobile menu: sub-category panel blends into its box, same as the dark theme */
+.sm__group ul,
+html[data-theme='dark'] .sm__group ul {
+  background: transparent;
+}
+.sm__group ul .sm__thumb {
+  background: var(--s-sand);
+}
+
+/* Mobile cart: same top bar as the menu (logo left, close right) */
+.s-cd__top {
+  display: none;
+}
+@media screen and (max-width: 749px) {
+  .s-cd__top {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    margin: 0;
+    padding: 1.6rem 2.4rem 0;
+  }
+  cart-drawer .drawer__inner {
+    position: relative;
+  }
+  cart-drawer:not(.is-empty) .drawer__inner {
+    padding-top: 7.4rem;
+  }
+  cart-drawer .drawer__close {
+    display: none;
+  }
+}
+
+/* Mobile cart and menu: fade in and fade out, no sliding */
+@keyframes s-sheet-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes s-sheet-out {
+  to {
+    opacity: 0;
+  }
+}
+@media screen and (max-width: 749px) {
+  cart-drawer.drawer {
+    background-color: transparent;
+    transition: visibility 0.28s ease;
+  }
+  cart-drawer .drawer__inner {
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+  }
+  cart-drawer.active .drawer__inner {
+    opacity: 1;
+  }
+}
+@media screen and (max-width: 989px) {
+  .sm__sheet {
+    animation: s-sheet-in 0.28s ease;
+  }
+  .sm.is-closing .sm__sheet {
+    animation: s-sheet-out 0.28s ease forwards;
+  }
+  .sm.is-closing .sm__scrim {
+    animation: s-sheet-out 0.28s ease forwards;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  cart-drawer .drawer__inner,
+  .sm__sheet {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Mobile menu: two buttons at the bottom */
+.sm__actions {
+  display: grid;
+  gap: 1rem;
+  margin: 0 0 2.4rem;
+}
+.sm__actions .s-btn {
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+
+/* Mobile hero: the two buttons stack full width so "Personalized gifts" stays on one line */
+@media screen and (max-width: 749px) {
+  .s-hero__cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .s-hero__cta .s-btn {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    min-height: 5.2rem;
+    white-space: nowrap;
+  }
+}
+
+/* ---------- Mobile hero: photo fills the section, text sits on top of it ---------- */
+@media screen and (max-width: 749px) {
+  .s-hero,
+  html[data-theme='dark'] .s-hero {
+    --h-fg: #f6eee0;
+    --h-soft: rgba(246, 238, 224, 0.88);
+    display: flex;
+    min-height: max(58rem, calc(100svh - 11rem));
+    padding: 0;
+    background: var(--s-dusk);
+  }
+  .s-hero__waves,
+  .s-hero__block,
+  .s-hero__outline {
+    display: none;
+  }
+  .s-hero__art {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    z-index: 0;
+  }
+  .s-hero__frame,
+  html[data-theme='dark'] .s-hero .s-hero__frame {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    aspect-ratio: auto;
+    box-shadow: none;
+  }
+  .s-hero__img {
+    border-radius: 0;
+    object-position: 50% 30%;
+  }
+  .s-hero__bloom {
+    border-radius: 0;
+  }
+  .s-hero__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(20, 15, 18, 0.28) 0%,
+      rgba(20, 15, 18, 0) 24%,
+      rgba(20, 15, 18, 0.5) 50%,
+      rgba(20, 15, 18, 0.88) 78%,
+      rgba(20, 15, 18, 0.95) 100%
+    );
+  }
+  .s-hero__grid {
+    position: static;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 2rem 3.2rem;
+  }
+  .s-hero__copy {
+    position: relative;
+    z-index: 2;
+  }
+  .s-hero__title {
+    font-size: clamp(4.4rem, 13vw, 5.6rem);
+  }
+  .s-hero__sub {
+    margin-top: 1.8rem;
+  }
+  .s-hero__cta {
+    margin-top: 2.6rem;
+    gap: 1rem;
+  }
+  .s-hero .s-btn--solid {
+    background: var(--s-gold);
+    border-color: var(--s-gold);
+    color: #1e1a1c;
+  }
+  .s-hero .s-btn--line {
+    color: #f6eee0;
+    border-color: rgba(246, 238, 224, 0.75);
+    background: rgba(20, 15, 18, 0.25);
+  }
+}
+
+/* Mobile hero, round 2: stronger fade under the copy, slightly smaller title so more of the photo shows */
+@media screen and (max-width: 749px) {
+  .s-hero,
+  html[data-theme='dark'] .s-hero {
+    min-height: max(60rem, calc(100svh - 11rem));
+  }
+  .s-hero__frame::after {
+    background: linear-gradient(
+      180deg,
+      rgba(20, 15, 18, 0.3) 0%,
+      rgba(20, 15, 18, 0) 18%,
+      rgba(20, 15, 18, 0.6) 40%,
+      rgba(20, 15, 18, 0.9) 62%,
+      rgba(20, 15, 18, 0.96) 100%
+    );
+  }
+  .s-hero__title {
+    font-size: clamp(4rem, 12vw, 5.2rem);
+  }
+  .s-hero__sub {
+    font-size: 1.6rem;
+    line-height: 1.5;
+  }
+}
+
+/* Mobile feature sections: the button stretches across the column (page padding stays on both sides) */
+@media screen and (max-width: 749px) {
+  .s-feature .s-btn {
+    display: flex;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+}
+
+/* Mobile feature sections: photo first, then the text */
+@media screen and (max-width: 749px) {
+  .s-feature__art {
+    order: -1;
+  }
+}
+
+/* Mobile feature titles use the full column width (no 14ch cap) */
+@media screen and (max-width: 749px) {
+  .s-feature__title {
+    max-width: none;
+  }
+}
+
+/* Mobile: Best sellers and New arrivals show four products (a clean 2 x 2), the fifth stays desktop only */
+@media screen and (max-width: 749px) {
+  .s-products .product-grid > .grid__item:nth-child(n + 5) {
+    display: none;
+  }
+}
+
+/* Mobile, Join the Sienna List: logo left, title and text right, one-line email field with a same-height Join button */
+@media screen and (max-width: 749px) {
+  .s-list__card {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1.6rem;
+    row-gap: 2.2rem;
+    align-items: center;
+    padding: 2.6rem 2rem;
+  }
+  .s-list__badge {
+    width: 7rem;
+    height: 7rem;
+  }
+  .s-list__badge img {
+    width: 4.6rem;
+    height: 4.6rem;
+  }
+  .s-list__title {
+    font-size: 2.6rem;
+  }
+  .s-list__text {
+    margin-top: 0.6rem;
+    font-size: 1.4rem;
+    line-height: 1.45;
+  }
+  .s-list__action,
+  .s-list__hello {
+    grid-column: 1 / -1;
+  }
+  .s-list__form,
+  .s-list .s-list__form {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.6rem;
+    padding: 0.5rem;
+  }
+  .s-list__form input[type='email'] {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+    min-height: 4.4rem;
+    padding: 0 1.2rem;
+    font-size: 1.5rem;
+  }
+  .s-list__form .s-btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 4.4rem;
+    padding: 0 2rem;
+    font-size: 1.2rem;
+  }
+}
+
+/* Mobile, Join the Sienna List: bigger logo, no question boxes under "Say hello" */
+@media screen and (max-width: 749px) {
+  .s-list__badge {
+    width: 8.6rem;
+    height: 8.6rem;
+  }
+  .s-list__badge img {
+    width: 5.8rem;
+    height: 5.8rem;
+  }
+  .s-list__asks {
+    display: none;
+  }
+}
+
+/* Mobile, Say hello: the Send message button spans the form */
+@media screen and (max-width: 749px) {
+  .s-contact__form .s-btn {
+    display: flex;
+    width: 100%;
+    justify-self: stretch;
+    flex: 0 0 auto;
+  }
+}
+
+/* Mobile menu: the chevron turns with the dropdown, in both directions */
+.sm__group summary svg {
+  transition: transform 0.28s var(--s-ease);
+}
+.sm__group[data-closing] summary svg {
+  transform: rotate(0deg);
+}
+
+/* Mobile, Join the Sienna List: larger logo with less padding around it */
+@media screen and (max-width: 749px) {
+  .s-list__card {
+    column-gap: 1.2rem;
+  }
+  .s-list__badge {
+    width: 9.6rem;
+    height: 9.6rem;
+  }
+  .s-list__badge img {
+    width: 8rem;
+    height: 8rem;
+  }
+}
+
+/* Mobile, Say hello: tighter spacing between the inputs (the reserved error line is shorter) */
+@media screen and (max-width: 749px) {
+  .s-contact__form .s-field__err,
+  .s-contact__form .s-field__err[hidden] {
+    min-height: 2rem;
+    padding-top: 0.4rem;
+  }
+  .s-contact__form,
+  .s-contact__row {
+    gap: 0.6rem;
+  }
+}
+
+/* Mobile footer: compact (small centered star, tight payment icons, short copyright block) */
+@media screen and (max-width: 749px) {
+  .s-contact {
+    padding-bottom: 4.4rem;
+  }
+  .s-footer-mark {
+    width: 4.6rem;
+    margin: 1.6rem auto 0;
+  }
+  footer.footer .footer__content-bottom {
+    padding: 1rem 0 1.6rem;
+  }
+  footer.footer .footer__content-bottom-wrapper {
+    gap: 0;
+    padding: 0 2rem;
+  }
+  footer.footer .footer__payment {
+    margin: 0;
+  }
+  footer.footer .list-payment {
+    padding: 0;
+    margin: 0;
+    justify-content: center;
+  }
+  footer.footer .list-payment__item {
+    padding: 0.3rem;
+  }
+  footer.footer .footer__content-bottom-wrapper:last-child {
+    margin: 0.6rem 0 0;
+    justify-content: center;
+    text-align: center;
+  }
+  footer.footer .footer__copyright,
+  footer.footer .footer__copyright .copyright__content {
+    margin: 0;
+    text-align: center;
+    font-size: 1.2rem;
+    line-height: 1.5;
+  }
+}
+
+/* Mobile footer, round 2: star on the left, payment icons on the right, copyright underneath */
+@media screen and (max-width: 749px) {
+  footer.footer {
+    position: relative;
+  }
+  footer.footer .footer__content-bottom,
+  footer.footer .footer__content-bottom-wrapper {
+    position: static;
+  }
+  .s-footer-mark {
+    position: absolute;
+    left: 2rem;
+    top: 1.6rem;
+    width: 5.6rem;
+    margin: 0;
+    transform: none;
+  }
+  footer.footer .footer__content-bottom {
+    padding: 1.6rem 0 1.2rem;
+  }
+  footer.footer .footer__content-bottom-wrapper:first-child {
+    padding: 0 2rem 0 9rem;
+  }
+  footer.footer .list-payment {
+    justify-content: flex-end;
+    padding: 0;
+    margin: 0;
+  }
+  footer.footer .list-payment__item {
+    padding: 0.2rem;
+  }
+  footer.footer .list-payment__item svg {
+    width: 3.2rem;
+    height: 2.1rem;
+  }
+  footer.footer .footer__content-bottom-wrapper:last-child {
+    margin: 0.8rem 0 0;
+  }
+}
+
+/* Mobile footer: the payment column's own top padding goes, so the icons line up with the star */
+@media screen and (max-width: 749px) {
+  footer.footer .footer__content-bottom-wrapper:first-child .footer__column {
+    padding-top: 0;
+  }
+}
+
+/* Mobile footer: no star logo, payment icons centered */
+@media screen and (max-width: 749px) {
+  .s-footer-mark {
+    display: none;
+  }
+  footer.footer .footer__content-bottom-wrapper:first-child {
+    padding: 0 2rem;
+  }
+  footer.footer .list-payment {
+    justify-content: center;
+  }
+}
+
+/* Mobile footer, final layout: star on the left, payment cards on the right in two rows of six, copyright underneath.
+   Overrides the earlier mobile footer blocks above. */
+@media screen and (max-width: 749px) {
+  footer.footer,
+  footer.footer.gradient {
+    position: static;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 1.8rem;
+    row-gap: 1.4rem;
+    padding: 2rem 2rem 1.8rem;
+  }
+  .s-footer-mark {
+    display: block;
+    position: static;
+    transform: none;
+    width: 6rem;
+    margin: 0;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .s-footer-mark img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  footer.footer .footer__content-bottom,
+  footer.footer .footer__content-bottom-wrapper,
+  footer.footer .footer__content-bottom-wrapper:first-child,
+  footer.footer .footer__content-bottom-wrapper:last-child {
+    display: contents;
+  }
+  footer.footer .footer__localization {
+    display: none;
+  }
+  footer.footer .footer__column--info,
+  footer.footer .footer__column.footer__column--info {
+    grid-column: 2;
+    justify-self: stretch;
+  }
+  footer.footer .footer__column--info {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: stretch;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  footer.footer .footer__payment {
+    margin: 0;
+    width: 100%;
+  }
+  footer.footer .list-payment {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.5rem 0.4rem;
+    justify-items: center;
+    padding: 0;
+    margin: 0;
+  }
+  footer.footer .list-payment__item {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  footer.footer .list-payment__item svg {
+    display: block;
+    width: 100%;
+    max-width: 3.8rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  footer.footer .footer__copyright {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    text-align: center;
+    font-size: 1.2rem;
+    line-height: 1.5;
+  }
+  footer.footer .footer__copyright .copyright__content {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+}
+
+/* Mobile footer: bigger star, slightly smaller cards, more room above the copyright line */
+@media screen and (max-width: 749px) {
+  footer.footer,
+  footer.footer.gradient {
+    row-gap: 2.4rem;
+    column-gap: 2rem;
+  }
+  .s-footer-mark {
+    width: 7.6rem;
+  }
+  footer.footer .list-payment {
+    gap: 0.6rem 0.5rem;
+  }
+  footer.footer .list-payment__item svg {
+    width: 86%;
+    max-width: 3.2rem;
+  }
+}
+
+/* Mobile footer: the star logo turns on its own every few seconds, like the header star */
+@media screen and (max-width: 749px) {
+  .s-footer-mark img {
+    animation: s-star-turn 6s var(--s-ease) infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-footer-mark img {
+    animation: none;
+  }
+}
+
+/* Mobile collection page: the Categories box shows a chevron that points down when closed and up when open */
+@media screen and (max-width: 989px) {
+  .s-side__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+  }
+  .s-side__toggle::-webkit-details-marker {
+    display: none;
+  }
+  .s-side__toggle::after {
+    content: '';
+    flex: none;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: -0.3rem 0.2rem 0 0;
+    border-right: 1.6px solid currentColor;
+    border-bottom: 1.6px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.28s var(--s-ease), margin 0.28s var(--s-ease);
+  }
+  .s-side__wrap[open] > .s-side__toggle::after {
+    margin-top: 0.3rem;
+    transform: rotate(-135deg);
+  }
+}
+
+/* Categories box: the chevron starts turning the moment it begins to close */
+@media screen and (max-width: 989px) {
+  .s-side__wrap[data-closing] > .s-side__toggle::after {
+    margin-top: -0.3rem;
+    transform: rotate(45deg);
+  }
+}
+
+/* Mobile Filter and sort: slides up from the bottom as a sheet, with a dark fading backdrop */
+@media screen and (max-width: 749px) {
+  form.mobile-facets {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background-color: rgba(20, 15, 18, 0.58);
+    transition: background-color 0.3s ease;
+  }
+  .js .mobile-facets__disclosure:not(.menu-opening) form.mobile-facets {
+    background-color: rgba(20, 15, 18, 0);
+  }
+  form.mobile-facets .mobile-facets__inner {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: min(60dvh, 46rem);
+    max-height: 88dvh;
+    margin: 0;
+    border-width: 0;
+    border-radius: 2.4rem 2.4rem 0 0;
+    filter: none;
+    box-shadow: 0 -18px 40px -24px rgba(20, 15, 18, 0.5);
+    transition: transform 0.32s var(--s-ease);
+  }
+  .menu-opening form.mobile-facets .mobile-facets__inner {
+    transform: translateY(0);
+  }
+  .js .disclosure-has-popup:not(.menu-opening) form.mobile-facets .mobile-facets__inner {
+    transform: translateY(105%);
+  }
+}
+
+/* Filter sheet: fixed height so the close button can sit inside its top-right corner */
+@media screen and (max-width: 749px) {
+  form.mobile-facets .mobile-facets__inner {
+    height: min(68dvh, 56rem);
+    min-height: 0;
+  }
+  .mobile-facets__disclosure .mobile-facets__close {
+    top: calc(100dvh - min(68dvh, 56rem) + 1rem);
+    right: 1rem;
+    transition: opacity 0.25s ease 0.1s;
+  }
+  .js .mobile-facets__disclosure:not(.menu-opening) .mobile-facets__close {
+    opacity: 0;
+    transition-delay: 0s;
+  }
+}
+
+/* Filter sheet, round 2: as tall as its content, and the Sort by control matches the site's own dropdown */
+@media screen and (max-width: 749px) {
+  form.mobile-facets .mobile-facets__inner {
+    height: auto;
+    min-height: 0;
+    max-height: 88dvh;
+  }
+  .mobile-facets__disclosure .mobile-facets__close {
+    top: calc(100dvh - var(--s-sheet-h, 36rem) + 1rem);
+  }
+  .mobile-facets__sort {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.4rem;
+  }
+  .mobile-facets__sort .select {
+    position: relative;
+    flex: 1 1 14rem;
+    min-width: 0;
+  }
+  .mobile-facets__sort .select::after,
+  .mobile-facets__sort .select .icon-caret {
+    display: none;
+  }
+  .mobile-facets__sort .s-select {
+    width: 100%;
+  }
+  .mobile-facets__sort .s-select__btn {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .mobile-facets__sort .s-select__list {
+    position: static;
+    min-width: 0;
+    margin-top: 0.8rem;
+    box-shadow: 0 0 0 1px var(--s-line);
+    animation: none;
+  }
+}
+
+/* Filter sheet: "Sort by" label sits above its dropdown */
+@media screen and (max-width: 749px) {
+  .mobile-facets__sort {
+    display: block;
+  }
+  .mobile-facets__sort label {
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+  .mobile-facets__sort .select {
+    flex: none;
+  }
+}
+
+/* Filter sheet: the Sort by list opens upward, over the sheet, instead of making the sheet taller */
+@media screen and (max-width: 749px) {
+  form.mobile-facets .mobile-facets__main {
+    overflow: visible;
+  }
+  .mobile-facets__sort .s-select__list {
+    position: absolute;
+    top: auto;
+    bottom: calc(100% + 0.8rem);
+    left: auto;
+    right: 0;
+    z-index: 6;
+    min-width: 22rem;
+    max-height: 24rem;
+    overflow-y: auto;
+    margin: 0;
+    box-shadow: 0 0 0 1px var(--s-line), 0 -18px 40px -24px rgba(34, 34, 34, 0.5);
+  }
+}
+
+/* Sort list: stays below the sheet header (scrolls inside when there are more options) */
+@media screen and (max-width: 749px) {
+  .mobile-facets__sort .s-select__list {
+    max-height: 16rem;
+  }
+}
+@media screen and (max-width: 749px) {
+  .mobile-facets__sort .s-select__list {
+    max-height: 13rem;
+  }
+}
+
+/* Filter sheet: price fields show no floating label while typing, "Remove all" is bigger and sits left, Price panel has room */
+@media screen and (max-width: 749px) {
+  form.mobile-facets .field__input:focus ~ .field__label,
+  form.mobile-facets .field__input:not(:placeholder-shown) ~ .field__label {
+    opacity: 0;
+    visibility: hidden;
+  }
+  form.mobile-facets .field__input:focus::placeholder {
+    color: transparent;
+  }
+  form.mobile-facets .field__input {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  form.mobile-facets .mobile-facets__footer {
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.6rem;
+  }
+  form.mobile-facets .mobile-facets__footer > .mobile-facets__clear-wrapper {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+  }
+  form.mobile-facets .mobile-facets__footer > .mobile-facets__clear-wrapper .mobile-facets__clear {
+    font-size: 1.6rem;
+  }
+  form.mobile-facets .mobile-facets__footer > .button {
+    flex: 0 1 17rem;
+    margin: 0 0 0 auto;
+  }
+  form.mobile-facets .mobile-facets__inner:has(.mobile-facets__details[open]) {
+    min-height: min(42rem, 88dvh);
+  }
+}
+
+/* Mobile active filters: bigger price chip and "Remove all", closer together */
+@media screen and (max-width: 989px) {
+  .active-facets .active-facets__button-wrapper *,
+  .active-facets .active-facets__button-remove {
+    font-size: 1.4rem;
+  }
+  .active-facets span.active-facets__button-inner,
+  .active-facets .active-facets__button-inner * {
+    font-size: 1.4rem;
+  }
+  .active-facets .active-facets__button-inner {
+    padding: 0.5rem 1.3rem;
+  }
+  .active-facets .active-facets__button-wrapper {
+    margin-left: 0;
+  }
+  .active-facets .active-facets__button-remove {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+}
+
+/* Mobile product page: every gallery photo gets the same square frame */
+@media screen and (max-width: 749px) {
+  .product__media-list .product__media-item .product__media {
+    padding-top: 100% !important;
+  }
+  .product__media-list .product__media-item .product__media img {
+    object-fit: cover;
+  }
+}
+@media screen and (max-width: 749px) {
+  .product__media-list .product__media-item .product__media,
+  .product__media-list .product__media-item .product__media.media--transparent {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+}
+@media screen and (max-width: 749px) {
+  .product__media-list .product-media-container,
+  .product__media-list .product-media-container.media-fit-contain {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+/* Mobile product zoom: the photo opens at the full width of the screen */
+@media screen and (max-width: 749px) {
+  .product-media-modal__content > .active,
+  .product-media-modal__content .product-media-container,
+  .product-media-modal__content .product-media-container.media-fit-contain {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: auto !important;
+  }
+  .product-media-modal__content .global-media-settings,
+  .product-media-modal__content .media {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Product page: Share looks like a button (outline, same family as the other buttons) */
+html .product__info-container > share-button .share-button__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 4.6rem;
+  padding: 0 2.2rem;
+  border: 1.5px solid var(--s-ink);
+  border-radius: var(--s-r);
+  background: transparent;
+  color: var(--s-ink);
+  font: 600 1.3rem/1 var(--font-body-family);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  list-style: none;
+  transition: background 0.25s var(--s-ease), color 0.25s var(--s-ease), border-color 0.25s var(--s-ease);
+}
+html .product__info-container > share-button .share-button__button::-webkit-details-marker {
+  display: none;
+}
+html .product__info-container > share-button .share-button__button:hover,
+html .product__info-container > share-button .share-button__button:focus-visible,
+html .product__info-container > share-button details[open] > .share-button__button {
+  background: var(--s-ink);
+  border-color: var(--s-ink);
+  color: var(--s-cream);
+}
+html .product__info-container > share-button .share-button__button .svg-wrapper,
+html .product__info-container > share-button .share-button__button .icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* Share: full width, same size as the Add to cart button (mobile and desktop) */
+html .product__info-container > share-button {
+  align-self: stretch;
+  width: 100%;
+}
+html .product__info-container > share-button .share-button__button,
+html .product__info-container > share-button details > .share-button__button {
+  display: flex;
+  width: 100%;
+  min-height: 5.2rem;
+  letter-spacing: 0.12em;
+}
+
+/* Product page: the quantity box sits on the price row (price, sold-out badge, then quantity at the right), mobile and desktop.
+   The info column is a flex column with !important above, so this turns it into a wrapping row where everything is full width except these two. */
+html .product__info-container {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1.6rem;
+  row-gap: 2.6rem;
+}
+html .product__info-container > * {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+html .product__info-container > div:has(> .price) {
+  flex: 1 1 0;
+  order: 3;
+}
+html .product__info-container > .product-form__quantity {
+  flex: 0 0 auto;
+  order: 3;
+  margin: 0 !important;
+  display: block;
+}
+
+/* Quantity box is exactly as tall as the price pill (the pill keeps its own height), top-aligned */
+html .product__info-container .product-form__quantity .quantity {
+  box-sizing: border-box;
+  height: 3.6rem;
+  min-height: 3.6rem;
+}
+html .product__info-container {
+  align-items: flex-start;
+}
+
+/* Quantity box: no gold ring or outline when it (or its + and - buttons) is clicked */
+.quantity:focus-within,
+.quantity:hover:focus-within {
+  box-shadow: 0 0 0 1px var(--s-line);
+}
+.quantity__button:focus,
+.quantity__button:focus-visible,
+.quantity__input:focus,
+.quantity__input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
