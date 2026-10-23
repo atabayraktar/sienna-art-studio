@@ -5147,7 +5147,8 @@ html .product__info-container {
 /* ==========================================================================
    Phone in landscape (short and wide). Only this block changes; portrait phones, tablets and desktop are untouched.
    ========================================================================== */
-@media screen and (orientation: landscape) and (max-height: 500px) and (max-width: 960px) {
+@media screen and (orientation: landscape) and (max-height: 500px) and (max-width: 960px),
+  screen and (orientation: portrait) and (min-width: 600px) and (max-width: 989px) {
   /* Hero: copy left, a smaller framed photo right, on the same dark scheme as the portrait phone hero */
   html .s-hero,
   html[data-theme='dark'] .s-hero {
@@ -5398,9 +5399,6 @@ html .product__info-container {
   html .s-list__hello {
     grid-column: 1 / -1;
   }
-  html .s-list__asks {
-    display: none;
-  }
   html .s-list__form input[type='email'] {
     flex: 1 1 0;
     width: 0;
@@ -5417,5 +5415,236 @@ html .product__info-container {
 @media screen and (orientation: landscape) and (max-height: 500px) and (min-width: 750px) and (max-width: 960px) {
   html[data-theme='dark'] cart-drawer.drawer {
     background-color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Phone in landscape: no question boxes under Say hello */
+@media screen and (orientation: landscape) and (max-height: 500px) and (max-width: 960px) {
+  html .s-list__asks {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Tablet in portrait (iPad mini, foldables unfolded). The phone-landscape block above is shared for the home page
+   and collection grid; the rules below add the bits that are tablet only. Phones in portrait, landscape phones and desktop are untouched.
+   ========================================================================== */
+@media screen and (orientation: portrait) and (min-width: 600px) and (max-width: 989px) {
+  html .s-hero__frame,
+  html[data-theme='dark'] .s-hero .s-hero__frame {
+    height: min(34rem, 42svh);
+  }
+  html .s-hero {
+    padding: 4rem 0;
+  }
+  html .s-hero__title {
+    font-size: clamp(3.6rem, 6.4vw, 4.8rem);
+  }
+  html .s-hero__sub {
+    font-size: 1.6rem;
+  }
+  html .s-tile__name {
+    font-size: 1.7rem;
+  }
+  html .s-feature,
+  html .s-tiles {
+    padding-block: 4.4rem;
+  }
+  html .s-feature__shot:not(.s-feature__shot--small) {
+    width: min(100%, 30rem);
+  }
+  html .s-feature__shot:not(.s-feature__shot--small) img {
+    max-height: 34rem;
+  }
+  html .s-collage {
+    max-width: 34rem;
+  }
+  html .s-products .card__heading,
+  html .s-products .card__heading a,
+  html .s-shop .card__heading,
+  html .s-shop .card__heading a {
+    font-size: 1.35rem;
+  }
+}
+
+/* Tablet portrait, filters: Filter, Availability and Price stay on one row beside Sort by */
+@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 989px),
+  screen and (orientation: landscape) and (min-width: 990px) and (max-width: 1199px) and (min-height: 600px) {
+  html .facets__form {
+    gap: 0 1.2rem;
+  }
+  html .facets__wrapper .facets__disclosure {
+    margin-right: 1.2rem;
+  }
+  .facets__wrapper .facets__heading {
+    margin-right: 1rem;
+  }
+}
+
+/* Tablet portrait, footer: star on the left, payment cards on the right in two rows of six, copyright underneath */
+@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 989px) {
+  footer.footer,
+  footer.footer.gradient {
+    position: static;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 3rem;
+    row-gap: 2.4rem;
+    padding: 3rem 3rem 2.4rem;
+  }
+  .s-footer-mark {
+    display: block;
+    position: static;
+    transform: none;
+    width: 8.4rem;
+    margin: 0;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .s-footer-mark img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  footer.footer .footer__content-bottom,
+  footer.footer .footer__content-bottom-wrapper,
+  footer.footer .footer__content-bottom-wrapper:first-child,
+  footer.footer .footer__content-bottom-wrapper:last-child {
+    display: contents;
+  }
+  footer.footer .footer__localization {
+    display: none;
+  }
+  footer.footer .footer__column--info,
+  footer.footer .footer__column.footer__column--info {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: stretch;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  footer.footer .footer__payment {
+    margin: 0;
+    width: 100%;
+  }
+  footer.footer .list-payment {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.8rem 0.6rem;
+    justify-items: center;
+    padding: 0;
+    margin: 0;
+  }
+  footer.footer .list-payment__item {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  footer.footer .list-payment__item svg {
+    display: block;
+    width: 86%;
+    max-width: 4.4rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  footer.footer .footer__copyright {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0;
+    text-align: center;
+    font-size: 1.3rem;
+    line-height: 1.5;
+  }
+  footer.footer .footer__copyright .copyright__content {
+    margin: 0;
+    font-size: 1.3rem;
+  }
+}
+
+/* Tablet portrait, product page: no empty thumbnail column beside a lone photo, thumbnails sit under the main photo */
+@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 989px) {
+  .product__media-wrapper media-gallery,
+  .product media-gallery {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 1rem;
+  }
+  .product media-gallery > slider-component[id^='GalleryViewer'] {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .product media-gallery > slider-component[id^='GalleryThumbnails'] {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100% !important;
+    max-width: 100% !important;
+    align-self: auto;
+  }
+  media-gallery .thumbnail-list.slider {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.3rem;
+  }
+  .product media-gallery .thumbnail-list__item {
+    width: 7.6rem !important;
+    flex: none !important;
+  }
+}
+
+/* ==========================================================================
+   Tablet in landscape (iPad mini 1024 to 1199 wide): header fits, four best sellers, tidier list card, wider product cards
+   ========================================================================== */
+@media screen and (orientation: landscape) and (min-width: 990px) and (max-width: 1199px) and (min-height: 600px) {
+  .section-header .header {
+    padding-inline: 2rem;
+  }
+  .sn__list {
+    gap: 0;
+  }
+  .sn__link {
+    padding: 1rem 0.9rem;
+    font-size: 1.3rem;
+    white-space: nowrap;
+  }
+  html .s-products .product-grid,
+  html .s-shop .product-grid {
+    column-gap: 1.6rem;
+  }
+  html .s-products .product-grid > .grid__item {
+    width: calc(25% - 1.2rem);
+    max-width: calc(25% - 1.2rem);
+  }
+  html .s-products .product-grid > .grid__item:nth-child(n + 5) {
+    display: none;
+  }
+  html .s-list__card {
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 34rem);
+    gap: 2.4rem;
+    padding: 4rem 3rem;
+  }
+  html .s-list__badge {
+    width: 10rem;
+    height: 10rem;
+  }
+  html .s-list__badge img {
+    width: 6.6rem;
+    height: 6.6rem;
+  }
+  html .s-list__hello {
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 34rem);
+    column-gap: 2.4rem;
+  }
+  html .s-shop {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    gap: 2.4rem;
+  }
+  html .s-shop .product-grid > .grid__item {
+    width: calc(33.333% - 1.1rem);
+    max-width: calc(33.333% - 1.1rem);
   }
 }
