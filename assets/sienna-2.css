@@ -5810,3 +5810,9 @@ html .product__info-container {
   padding: 0.2rem 0.4rem 0.4rem 0.2rem;
   scrollbar-width: thin;
 }
+
+/* Contrast (Lighthouse AA): unselected unavailable variant buttons in the light theme */
+html:not([data-theme='dark']) .product-form__input input[type='radio'].disabled:not(:checked) + label,
+html:not([data-theme='dark']) .product-form__input input[type='radio']:disabled:not(:checked) + label {
+  color: #66615c;
+}

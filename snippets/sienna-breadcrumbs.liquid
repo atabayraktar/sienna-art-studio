@@ -64,4 +64,20 @@
       {%- endif -%}
     </ol>
   </nav>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": {{ shop.name | json }}, "item": {{ request.origin | append: routes.root_url | json }} },
+        { "@type": "ListItem", "position": 2, "name": {{ crumb_main | json }}, "item": {{ request.origin | append: crumb_main_url | json }} },
+        {%- if crumb_sub != blank -%}
+          { "@type": "ListItem", "position": 3, "name": {{ crumb_sub | json }}, "item": {{ request.origin | append: crumb_sub_url | json }} },
+          { "@type": "ListItem", "position": 4, "name": {{ product.title | json }}, "item": {{ request.origin | append: product.url | json }} }
+        {%- else -%}
+          { "@type": "ListItem", "position": 3, "name": {{ product.title | json }}, "item": {{ request.origin | append: product.url | json }} }
+        {%- endif -%}
+      ]
+    }
+  </script>
 {%- endif -%}

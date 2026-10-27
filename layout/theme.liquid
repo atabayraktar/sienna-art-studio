@@ -28,8 +28,19 @@
       {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
     </title>
 
-    {% if page_description %}
-      <meta name="description" content="{{ page_description | escape }}">
+    {%- liquid
+      assign seo_description = page_description
+      if seo_description == blank
+        if request.page_type == 'collection' or request.page_type == 'list-collections'
+          assign seo_title = collection.title | default: 'all products'
+          assign seo_description = 'Shop ' | append: seo_title | append: ' at ' | append: shop.name | append: '. Unique home decor, mosaic lamps, personalized gifts and toys for kids.'
+        else
+          assign seo_description = shop.description
+        endif
+      endif
+    -%}
+    {% if seo_description != blank %}
+      <meta name="description" content="{{ seo_description | escape }}">
     {% endif %}
 
     {% render 'meta-tags' %}
@@ -299,7 +310,15 @@
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..500,0..100,0..1&family=Figtree:wght@400;500;600&display=swap"
+      media="print"
+      onload="this.media='all'"
     >
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..500,0..100,0..1&family=Figtree:wght@400;500;600&display=swap"
+      >
+    </noscript>
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
     {{ 'sienna.css' | asset_url | stylesheet_tag }}
