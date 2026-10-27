@@ -5468,7 +5468,7 @@ html .product__info-container {
 }
 
 /* Tablet portrait, filters: Filter, Availability and Price stay on one row beside Sort by */
-@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 989px),
+@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 1100px),
   screen and (orientation: landscape) and (min-width: 990px) and (max-width: 1199px) and (min-height: 600px) {
   html .facets__form {
     gap: 0 1.2rem;
@@ -5482,7 +5482,7 @@ html .product__info-container {
 }
 
 /* Tablet portrait, footer: star on the left, payment cards on the right in two rows of six, copyright underneath */
-@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 989px) {
+@media screen and (orientation: portrait) and (min-width: 750px) and (max-width: 1100px) {
   footer.footer,
   footer.footer.gradient {
     position: static;
@@ -5599,7 +5599,8 @@ html .product__info-container {
 /* ==========================================================================
    Tablet in landscape (iPad mini 1024 to 1199 wide): header fits, four best sellers, tidier list card, wider product cards
    ========================================================================== */
-@media screen and (orientation: landscape) and (min-width: 990px) and (max-width: 1199px) and (min-height: 600px) {
+@media screen and (orientation: landscape) and (min-width: 990px) and (max-width: 1199px) and (min-height: 600px),
+  screen and (orientation: portrait) and (min-width: 990px) and (max-width: 1100px) {
   .section-header .header {
     padding-inline: 2rem;
   }
@@ -5647,4 +5648,165 @@ html .product__info-container {
     width: calc(33.333% - 1.1rem);
     max-width: calc(33.333% - 1.1rem);
   }
+}
+
+/* Large desktop monitors (27"): header and footer run wider with less side padding */
+@media screen and (min-width: 1700px) {
+  .section-header .header,
+  footer.footer .footer__content-top.page-width,
+  footer.footer .footer__content-bottom-wrapper.page-width,
+  footer.footer .s-footer-top {
+    max-width: 220rem;
+    padding-left: 3.2rem;
+    padding-right: 3.2rem;
+  }
+}
+
+/* Search page: placeholder only, no floating label */
+.template-search__search .search__input::placeholder {
+  color: var(--s-ink-soft);
+  opacity: 1;
+}
+.template-search__search .search__input.field__input {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Search page field: one ring on the wrapper, radius fixed in every state; focus thickens it in light brown */
+.template-search__search .field__input,
+.template-search__search .field__input:hover,
+.template-search__search .field__input:focus,
+.template-search__search .field__input:focus-visible,
+.template-search__search .field:hover .field__input {
+  box-shadow: none;
+  outline: 0;
+  border-radius: var(--s-r);
+}
+.template-search__search .field::before {
+  display: none;
+}
+.template-search__search .field::after,
+.template-search__search .field:hover::after,
+.template-search__search .field:hover.field::after,
+.template-search__search .field:focus-within::after {
+  inset: 0;
+  border: 0;
+  border-radius: var(--s-r);
+  transition: box-shadow 0.2s;
+}
+.template-search__search .field::after {
+  box-shadow: inset 0 0 0 1px var(--s-line);
+}
+.template-search__search .field:hover::after,
+.template-search__search .field:hover.field::after {
+  box-shadow: inset 0 0 0 1px var(--s-gold);
+}
+.template-search__search .field:focus-within::after,
+.template-search__search .field:focus-within:hover.field::after {
+  box-shadow: inset 0 0 0 2.5px var(--s-gold);
+}
+
+/* Dark theme: the cart drawer dims the page behind it instead of washing it out with the light foreground color */
+@media screen and (min-width: 750px) {
+  html[data-theme='dark'] cart-drawer.drawer {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Search results on phone landscape and tablet portrait: same four small cards in a row as the collection page */
+@media screen and (orientation: landscape) and (max-height: 500px) and (max-width: 960px),
+  screen and (orientation: portrait) and (min-width: 600px) and (max-width: 989px) {
+  html .template-search__results .product-grid {
+    column-gap: 1rem;
+    row-gap: 1rem;
+  }
+  html .template-search__results .product-grid > .grid__item {
+    width: calc(25% - 0.75rem);
+    max-width: calc(25% - 0.75rem);
+  }
+  html .template-search__results .card-wrapper {
+    padding: 0.6rem 0.6rem 1rem;
+  }
+  html .template-search__results .card__heading,
+  html .template-search__results .card__heading a {
+    font-size: 1.25rem;
+  }
+}
+
+/* iPad Pro in portrait (990 to 1100 wide): the nav does not fit, so the header works like the mobile one */
+@media screen and (orientation: portrait) and (min-width: 990px) and (max-width: 1100px) {
+  .sn {
+    display: none;
+  }
+  .sm-toggle {
+    display: grid;
+  }
+  .sm:not([hidden]) {
+    display: block !important;
+  }
+  .section-header .header {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    column-gap: 0;
+    padding: 1rem 2rem;
+  }
+  .section-header .header > .header__search {
+    display: none !important;
+  }
+  .section-header .header > .header__heading,
+  .section-header .header > .header__heading-link {
+    order: 0;
+    margin: 0 auto 0 0;
+    justify-self: auto;
+    grid-column: auto;
+  }
+  .section-header .header > .header__icons {
+    order: 1;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.2rem;
+  }
+  .section-header .header > .sm-toggle {
+    order: 2;
+    margin: 0 0 0 0.2rem;
+    flex: none;
+    width: 4.2rem;
+  }
+  .section-header .header > .header__icons .header__search {
+    display: flex !important;
+  }
+  .section-header .header__icons .header__icon,
+  .section-header .header__icons .header__icon--account {
+    display: flex;
+    width: 4rem;
+    height: 4.4rem;
+  }
+  .section-header .header .sienna-logo {
+    width: 10.4rem;
+  }
+  .section-header:has(.sm:not([hidden])) {
+    z-index: 1000;
+  }
+  .sm__sheet {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    padding: 1.6rem 2.4rem 4rem;
+  }
+}
+
+/* Product page: variant buttons share the site radius and a long list scrolls instead of stacking */
+.product__info-container .product-form__input--pill input[type='radio'] + label,
+.product__info-container .product-form__input--pill input[type='radio'] + label::before {
+  border-radius: var(--s-r);
+}
+.product__info-container .product-form__input--pill {
+  max-height: 17rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.2rem 0.4rem 0.4rem 0.2rem;
+  scrollbar-width: thin;
 }
