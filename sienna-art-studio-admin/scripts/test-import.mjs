@@ -3,7 +3,7 @@ import ExcelJS from 'exceljs';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { parseWorkbook, sheetToObjects } from '../lib/parse-workbook.js';
-import { buildProductSetInput, collectionHandle, toHtml } from '../lib/payload.js';
+import { buildProductSetInput, buildMenu, collectionHandle, toHtml } from '../lib/payload.js';
 
 let pass = 0;
 const t = (name, fn) => Promise.resolve().then(fn).then(() => { pass++; console.log('ok  ', name); }, e => { console.error('FAIL', name, '\n    ', e.message); process.exitCode = 1; });
@@ -101,7 +101,7 @@ await t('html escaping', () => assert.equal(toHtml('a <b> & c\n\nsecond'), '<p>a
 // ---- import steps against a fake Shopify
 process.env.SHOPIFY_STORE = 'test-store';
 process.env.SHOPIFY_ADMIN_TOKEN = 'shpat_test';
-const { upsertProduct, upsertCollection, prepare } = await import('../lib/import-logic.js');
+const { upsertProduct, upsertCollection, writeMenu, prepare } = await import('../lib/import-logic.js');
 const calls = [];
 let existing = null;
 globalThis.fetch = async (url, init) => {
@@ -115,6 +115,7 @@ globalThis.fetch = async (url, init) => {
   if (query.includes('collectionCreate')) return ok({ collectionCreate: { collection: { id: 'gid://shopify/Collection/2' }, userErrors: [] } });
   if (query.includes('collectionUpdate')) return ok({ collectionUpdate: { collection: { id: 'gid://shopify/Collection/1' }, userErrors: [] } });
   if (query.includes('metafieldsSet')) return ok({ metafieldsSet: { userErrors: [] } });
+  if (query.trim() === '{ shop { id } }') return ok({ shop: { id: 'gid://shopify/Shop/1' } });
   if (query.includes('locations(')) return ok({ shop: { name: 'S', myshopifyDomain: 'd' }, locations: { nodes: [{ id: LOC, name: 'Shop', isActive: true, fulfillsOnlineOrders: true }] }, publications: { nodes: [{ id: 'gid://pub/1', name: 'Online Store' }] } });
   throw new Error('unexpected query ' + query.slice(0, 40));
 };
@@ -164,6 +165,26 @@ await t('collection: existing live handle is updated, new one is created, metafi
   const b = await upsertCollection({ name: 'Garden', type: 'Category', tagline: 't', image: '', headerImage: 'https://x/y.jpg', parent: '' }, false);
   assert.equal(b.action, 'created');
   assert.ok(calls.some(c => c.query.includes('metafieldsSet') && c.variables.m.some(m => m.key === 'header_image')));
+});
+
+await t('menu: 4 top categories in Excel order, children grouped, handles kept', () => {
+  const m = buildMenu(real.categories);
+  assert.deepEqual(m.map(g => g.name), ['Home & Lighting', 'Personalized Gifts', 'Toys & Kids', 'Home Decor']);
+  assert.equal(m[0].handle, 'all-lamps');
+  assert.deepEqual(m[2].children.map(c => c.handle), ['squishy-toys', 'mini-figures', 'kids-night-lights']);
+  assert.equal(m.reduce((n, g) => n + g.children.length, 0), 14);
+});
+await t('writeMenu: dry run writes nothing, live run sets shop metafield sienna.menu', async () => {
+  calls.length = 0;
+  const d = await writeMenu(real.categories, true);
+  assert.equal(d.groups, 4);
+  assert.equal(calls.length, 0);
+  const w = await writeMenu(real.categories, false);
+  assert.equal(w.action, 'written');
+  const mf = calls.find(c => c.query.includes('metafieldsSet')).variables.m[0];
+  assert.equal(mf.key, 'menu');
+  assert.equal(mf.type, 'json');
+  assert.equal(JSON.parse(mf.value).length, 4);
 });
 
 console.log(`\n${pass} checks passed${process.exitCode ? ', SOME FAILED' : ''}`);

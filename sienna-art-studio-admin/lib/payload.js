@@ -95,3 +95,15 @@ export function buildCollectionMetafields(cat, collectionId) {
   add('parent', cat.parent);
   return mf;
 }
+
+// Menu tree for the theme: one JSON in the shop metafield sienna.menu, in Excel order.
+// Top level = Category rows, children = their Subcategory rows.
+export function buildMenu(categories) {
+  const node = c => ({ name: c.name, handle: collectionHandle(c.name), tagline: c.tagline || '' });
+  const tops = categories.filter(c => c.type === 'Category').map(c => ({ ...node(c), headerImage: c.headerImage || '', children: [] }));
+  for (const c of categories.filter(c => c.type === 'Subcategory')) {
+    const top = tops.find(t => t.name.toLowerCase() === c.parent.toLowerCase());
+    if (top) top.children.push(node(c));
+  }
+  return tops;
+}

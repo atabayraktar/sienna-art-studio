@@ -1,7 +1,7 @@
 // Server-side import steps. Each step is one small request so it fits the free hosting time limits;
 // the browser calls them one by one and shows progress. dryRun = read from Shopify, write nothing.
 import { gql, userErrors } from './shopify.js';
-import { buildProductSetInput, buildCollectionMetafields, collectionHandle, stripQuery } from './payload.js';
+import { buildProductSetInput, buildCollectionMetafields, buildMenu, collectionHandle, stripQuery } from './payload.js';
 
 export async function prepare() {
   const d = await gql(`{
@@ -100,4 +100,17 @@ function countNew(input) {
   let n = (input.files || []).filter(f => f.originalSource).length;
   for (const v of input.variants) if (v.file && v.file.originalSource) n++;
   return n;
+}
+
+// Writes the whole menu tree to the shop metafield sienna.menu (the theme reads it).
+export async function writeMenu(categories, dryRun) {
+  const menu = buildMenu(categories);
+  if (dryRun) return { action: 'write', groups: menu.length };
+  const d = await gql(`{ shop { id } }`);
+  const r = await gql(`mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { field message } } }`, {
+    m: [{ ownerId: d.shop.id, namespace: 'sienna', key: 'menu', type: 'json', value: JSON.stringify(menu) }],
+  });
+  const e = userErrors(r.metafieldsSet.userErrors);
+  if (e.length) throw new Error(e.join('; '));
+  return { action: 'written', groups: menu.length };
 }

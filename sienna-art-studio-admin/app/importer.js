@@ -70,6 +70,16 @@ export default function Importer() {
         } catch (e) { addLog(`${c.type} ${c.name}: FAILED ${e.message}`, 'bad'); stats.failed++; }
         tick();
       }
+      try {
+        const r = await post('/api/import/menu', { categories: cats, dryRun });
+        addLog(, 'ok'); stats.ok++;
+      } catch (e) { addLog(, 'bad'); stats.failed++; }
+
+      try {
+        const r = await post('/api/import/menu', { categories: cats, dryRun });
+        addLog(`Site menu (${r.groups} main categories): ${r.action}`, 'ok'); stats.ok++;
+      } catch (e) { addLog(`Site menu: FAILED ${e.message}`, 'bad'); stats.failed++; }
+
       for (const p of products) {
         try {
           const collectionIds = [p.subcategory, p.category].filter(Boolean).map(n => ids[n.toLowerCase()]).filter(x => x && x.id && !x.smart).map(x => x.id);

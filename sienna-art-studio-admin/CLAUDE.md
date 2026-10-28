@@ -40,3 +40,11 @@ The user writes in Turkish and wants short, plain answers. Cost must stay 0 TL (
 - Deploy plan: Cloudflare (the user already has the site on Cloudflare and is logged in), test directly on the deployed site, no local test. Env vars must be entered in Cloudflare by hand (same 6 names as `.env.example`).
 - The user is a first-timer here: give ONE small step at a time, say exactly where to click.
 - Old copy `personal-projects/sienna-art-studio-admin` can be deleted.
+
+## Update (2026-10-28, night)
+
+- DEPLOYED: Cloudflare Workers (OpenNext adapter, `wrangler.jsonc`, git-connected build from this repo, root dir `sienna-art-studio-admin`) at https://admin.siennaartstudio.shop (custom domain set via `routes` in wrangler.jsonc; zone is on the user's Cloudflare account). Login works, Shopify shows "Connected". The 3 secrets live only in Cloudflare (Settings > Runtime variables and secrets); the 3 plain vars are also in wrangler.jsonc so deploys do not drop them. A push to main = production deploy.
+- NEW: every import writes the whole category tree to the SHOP metafield `sienna.menu` (JSON, Excel order: top categories with `children`). `lib/payload.js buildMenu`, `lib/import-logic.js writeMenu`, route `/api/import/menu`. Not yet run live: if it fails with an access error, the app may need an extra scope (check the error text).
+- Theme (`../sienna-art-studio-shop/snippets/sienna-nav.liquid`) now reads that metafield for desktop, mobile, sidebar and title; falls back to the old hardcoded list while the metafield is empty. Theme change is committed but NOT pushed to Shopify yet (push after the first import wrote the metafield).
+- Test file: `samples/sienna-test-import.xlsx` = real Excel + one draft product `SAS-TEST-01` (not in the real Excel on purpose). Plan: create -> change price and re-import (update) -> delete by hand in Shopify admin (the panel never deletes).
+- Menu text now comes from Excel: sub-category taglines are `-` in the Excel so they show blank; theme extras not in Excel (Photo to Cartoon Portraits, Personalized Gifts sub) disappear from the menu.

@@ -4,12 +4,35 @@
   Collections that do not exist yet still render; they simply link to /collections/<handle>.
 {%- endcomment -%}
 {%- liquid
-  assign groups = 'Home & Lighting~all-lamps~Unique decorative lamps for every space||Personalized Gifts~personalized-gifts~Custom art and gifts made for your people||Toys & Kids~toys-kids~Squishy toys and night lights for kids||Home Decor~home-decor~Small pieces that finish a room' | split: '||'
+  assign menu = shop.metafields.sienna.menu.value
+  if menu != blank
+    comment
+      Menu comes from the admin panel (shop metafield sienna.menu, written on every import).
+    endcomment
+    assign g_str = ''
+    assign s_str = ''
+    for mt in menu
+      assign g_str = g_str | append: mt.name | append: '~' | append: mt.handle | append: '~' | append: mt.tagline | append: '||'
+      for ms in mt.children
+        assign s_str = s_str | append: ms.name | append: '~' | append: ms.handle | append: '~' | append: ms.tagline | append: '^'
+      endfor
+      assign s_str = s_str | append: '||'
+    endfor
+    assign groups = g_str | split: '||'
+    assign subs_by_group = s_str | split: '||'
+  else
+    comment
+      Fallback until the first import has written the metafield.
+    endcomment
+    assign groups = 'Home & Lighting~all-lamps~Unique decorative lamps for every space||Personalized Gifts~personalized-gifts~Custom art and gifts made for your people||Toys & Kids~toys-kids~Squishy toys and night lights for kids||Home Decor~home-decor~Small pieces that finish a room' | split: '||'
 
-  assign subs_0 = 'Mosaic & Stained Glass~mosaic-stained-glass~Colorful glass lamps^Modern Lamps~modern~Clean, sculpted lines^Rechargeable Lamps~rechargeable~Cordless, carry anywhere^Crystal Glow Lamps~crystal-glow-lamps~Etched crystal light^Animal Stained Glass Lamps~animal-stained-glass-lamps~Figures in colored glass' | split: '^'
-  assign subs_1 = 'Custom Art~custom-art-personalized-gifts~Portraits from your photos^Personalized Gifts~personalized-gifts-all~Made with names and dates^Photo to Cartoon Portraits~photo-to-cartoon-portraits~Your photo, illustrated^Custom Products~custom-products~Made to your request' | split: '^'
-  assign subs_2 = 'Squishy Toys~squishy-toys~Soft, slow-rising and silly^Mini Figures~mini-figures~Small collectibles^Kids’ Night Lights~kids-night-lights~Soft glow for bedtime' | split: '^'
-  assign subs_3 = 'Wall Art~wall-art~Prints and framed pieces^Decorative Accents~decorative-accents~Shelf and table pieces^Seasonal Decor~seasonal-decor~For every holiday^Gift Ideas~gift-ideas~Ready to wrap' | split: '^'
+    assign subs_0 = 'Mosaic & Stained Glass~mosaic-stained-glass~Colorful glass lamps^Modern Lamps~modern~Clean, sculpted lines^Rechargeable Lamps~rechargeable~Cordless, carry anywhere^Crystal Glow Lamps~crystal-glow-lamps~Etched crystal light^Animal Stained Glass Lamps~animal-stained-glass-lamps~Figures in colored glass'
+    assign subs_1 = 'Custom Art~custom-art-personalized-gifts~Portraits from your photos^Personalized Gifts~personalized-gifts-all~Made with names and dates^Photo to Cartoon Portraits~photo-to-cartoon-portraits~Your photo, illustrated^Custom Products~custom-products~Made to your request'
+    assign subs_2 = 'Squishy Toys~squishy-toys~Soft, slow-rising and silly^Mini Figures~mini-figures~Small collectibles^Kids’ Night Lights~kids-night-lights~Soft glow for bedtime'
+    assign subs_3 = 'Wall Art~wall-art~Prints and framed pieces^Decorative Accents~decorative-accents~Shelf and table pieces^Seasonal Decor~seasonal-decor~For every holiday^Gift Ideas~gift-ideas~Ready to wrap'
+
+    assign subs_by_group = subs_0 | append: '||' | append: subs_1 | append: '||' | append: subs_2 | append: '||' | append: subs_3 | split: '||'
+  endif
 -%}
 
 {%- if mode == 'title' -%}
@@ -20,16 +43,7 @@
         echo gp[0]
         break
       endif
-      case forloop.index0
-        when 0
-          assign subs = subs_0
-        when 1
-          assign subs = subs_1
-        when 2
-          assign subs = subs_2
-        when 3
-          assign subs = subs_3
-      endcase
+      assign subs = subs_by_group[forloop.index0] | split: '^'
       for s in subs
         assign sp = s | split: '~'
         if sp[1] == handle
@@ -72,16 +86,7 @@
           {%- liquid
             assign gp = g | split: '~'
             assign idx = forloop.index0
-            case idx
-              when 0
-                assign subs = subs_0
-              when 1
-                assign subs = subs_1
-              when 2
-                assign subs = subs_2
-              when 3
-                assign subs = subs_3
-            endcase
+            assign subs = subs_by_group[idx] | split: '^'
             assign top_col = collections[gp[1]]
             assign top_img = top_col.featured_image
             if top_img == blank
@@ -148,16 +153,7 @@
       {%- for g in groups -%}
         {%- liquid
           assign gp = g | split: '~'
-          case forloop.index0
-            when 0
-              assign subs = subs_0
-            when 1
-              assign subs = subs_1
-            when 2
-              assign subs = subs_2
-            when 3
-              assign subs = subs_3
-          endcase
+          assign subs = subs_by_group[forloop.index0] | split: '^'
         -%}
         <div class="s-side__group">
           <a class="s-side__head{% if collection.handle == gp[1] %} is-current{% endif %}" href="{{ routes.collections_url }}/{{ gp[1] }}">{{ gp[0] }}</a>
@@ -202,16 +198,7 @@
       {%- for g in groups -%}
         {%- liquid
           assign gp = g | split: '~'
-          case forloop.index0
-            when 0
-              assign subs = subs_0
-            when 1
-              assign subs = subs_1
-            when 2
-              assign subs = subs_2
-            when 3
-              assign subs = subs_3
-          endcase
+          assign subs = subs_by_group[forloop.index0] | split: '^'
         -%}
         <details class="sm__group">
           <summary>
