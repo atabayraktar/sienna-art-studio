@@ -21,6 +21,7 @@ export default function Importer() {
   const [log, setLog] = useState([]);
   const [summary, setSummary] = useState(null);
   const [over, setOver] = useState(false);
+  const [tech, setTech] = useState(false); // false = plain-language results, true = developer log
   const logRef = useRef(null);
 
   useEffect(() => { fetch('/api/status').then(r => r.json()).then(setConn).catch(e => setConn({ connected: false, error: e.message })); }, []);
@@ -41,7 +42,8 @@ export default function Importer() {
     }
   }
 
-  const addLog = (line, cls = '') => setLog(l => [...l, { line, cls }]);
+  // line = developer log text; simple = plain-language text for the default view (omit to hide it there)
+  const addLog = (line, cls = '', simple) => setLog(l => [...l, { line, cls, simple }]);
 
   async function run() {
     setRunning(true); setSummary(null); setLog([]);
@@ -49,7 +51,8 @@ export default function Importer() {
     const products = plan.products.filter(p => !wanted.length || wanted.includes(p.code));
     const cats = plan.categories;
     setProgress({ done: 0, total: cats.length + products.length });
-    const stats = { ok: 0, failed: 0 };
+    const stats = { ok: 0, failed: 0, added: 0, updated: 0 };
+    let catOk = 0;
     let done = 0;
     const tick = () => { done += 1; setProgress({ done, total: cats.length + products.length }); };
     try {
@@ -66,26 +69,30 @@ export default function Importer() {
           const r = await post('/api/import/collection', { category: c, dryRun });
           ids[c.name.toLowerCase()] = r;
           if (r.smart) addLog(`! ${c.type} "${c.name}" is an automatic (rule based) collection: products cannot be added to it by the panel.`, 'warn');
-          addLog(`${c.type} ${c.name}: ${r.action}`, 'ok'); stats.ok++;
-        } catch (e) { addLog(`${c.type} ${c.name}: FAILED ${e.message}`, 'bad'); stats.failed++; }
+          addLog(`${c.type} ${c.name}: ${r.action}`, 'ok'); stats.ok++; catOk++;
+        } catch (e) { addLog(`${c.type} ${c.name}: FAILED ${e.message}`, 'bad', `Category "${c.name}" could not be saved. ${e.message}`); stats.failed++; }
         tick();
       }
+      if (catOk) addLog(`(${catOk} categories ok)`, 'ok', `${catOk} categories ${dryRun ? 'will be added or updated' : 'added or updated'}`);
       try {
         const r = await post('/api/import/menu', { categories: cats, dryRun });
-        addLog(`Site menu (${r.groups} main categories): ${r.action}`, 'ok'); stats.ok++;
-      } catch (e) { addLog(`Site menu: FAILED ${e.message}`, 'bad'); stats.failed++; }
+        addLog(`Site menu (${r.groups} main categories): ${r.action}`, 'ok', `The site menu ${dryRun ? 'will be updated' : 'was updated'}`); stats.ok++;
+      } catch (e) { addLog(`Site menu: FAILED ${e.message}`, 'bad', `The site menu could not be updated. ${e.message}`); stats.failed++; }
 
       for (const p of products) {
         try {
           const collectionIds = [p.subcategory, p.category].filter(Boolean).map(n => ids[n.toLowerCase()]).filter(x => x && x.id && !x.smart).map(x => x.id);
           if (dryRun === false && collectionIds.length === 0) addLog(`! ${p.code}: no collection could be linked`, 'warn');
           const r = await post('/api/import/product', { product: p, collectionIds, locationId: prep.locationId, publicationId: prep.publicationId, dryRun });
-          addLog(`${p.code} ${p.name}: ${r.action}${r.variants > 1 ? ` (${r.variants} variants)` : ''}${r.newImages ? `, ${r.newImages} new image(s)` : ''}`, 'ok'); stats.ok++;
-        } catch (e) { addLog(`${p.code} ${p.name}: FAILED ${e.message}`, 'bad'); stats.failed++; }
+          const isNew = /^creat/.test(r.action);
+          if (isNew) stats.added++; else stats.updated++;
+          addLog(`${p.code} ${p.name}: ${r.action}${r.variants > 1 ? ` (${r.variants} variants)` : ''}${r.newImages ? `, ${r.newImages} new image(s)` : ''}`, 'ok',
+            `${p.name} ${dryRun ? 'will be' : 'was'} ${isNew ? 'added' : 'updated'}`); stats.ok++;
+        } catch (e) { addLog(`${p.code} ${p.name}: FAILED ${e.message}`, 'bad', `${p.name} could not be saved. ${e.message}`); stats.failed++; }
         tick();
       }
     } catch (e) {
-      addLog('STOPPED: ' + e.message, 'bad'); stats.failed++;
+      addLog('STOPPED: ' + e.message, 'bad', 'Stopped. ' + e.message); stats.failed++;
     }
     setSummary({ ...stats, dryRun });
     setRunning(false);
@@ -146,19 +153,44 @@ export default function Importer() {
 
       {plan && (
         <section className="card">
-          <h2>4. Import</h2>
-          <label className="row" style={{ fontWeight: 400 }}>
-            <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} />
-            <span><b>Dry run</b>: only check against the store, write nothing (recommended first)</span>
+          <h2>4. Send to the site</h2>
+          <label className="switch">
+            <input type="checkbox" role="switch" checked={tech} onChange={e => setTech(e.target.checked)} />
+            <span>I know coding <span className="muted">(show technical details)</span></span>
           </label>
-          <label htmlFor="only">Only these product codes (optional, to test with one product)</label>
+
+          <label className="row preview">
+            <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} />
+            <span>
+              <b>Preview only</b> (Dry run)
+              <span className="muted block">Shows what WOULD change on the site, but changes nothing. Run this first, every time. If it finds no problems, untick this box and press "Import to the site" to really publish.</span>
+            </span>
+          </label>
+
+          <label htmlFor="only">Only some products <span className="muted">(optional)</span></label>
           <input id="only" type="text" value={only} onChange={e => setOnly(e.target.value)} placeholder="e.g. SAS-TOY-01, SAS-SWAN" />
-          <p className="muted">Existing products are found by SKU and updated. New ones are created and published. A "-" in the Excel means "leave as is".</p>
-          <button disabled={blocked} onClick={run}>{running ? 'Working...' : dryRun ? 'Run dry run' : 'Import to Shopify'}</button>
+          <p className="muted">Type the Product Codes separated by commas. Leave empty to include every product in the file. Products already on the site are updated, new ones are added. A "-" in the Excel means "leave as it is".</p>
+
+          <button disabled={blocked} onClick={run}>{running ? 'Working...' : dryRun ? 'Run preview' : 'Import to the site'}</button>
           {!conn?.connected && <span className="bad"> Shopify is not connected.</span>}
           {running && <div className="bar" style={{ marginTop: 14 }}><i style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }} /></div>}
-          {log.length > 0 && <div className="log" ref={logRef} style={{ marginTop: 14 }}>{log.map((l, i) => <div key={i} className={l.cls}>{l.line}</div>)}</div>}
-          {summary && <p><b>{summary.dryRun ? 'Dry run finished' : 'Import finished'}:</b> <span className="ok">{summary.ok} ok</span>, <span className={summary.failed ? 'bad' : ''}>{summary.failed} failed</span>.</p>}
+
+          {log.length > 0 && tech && <div className="log" ref={logRef} style={{ marginTop: 14 }}>{log.map((l, i) => <div key={i} className={l.cls}>{l.line}</div>)}</div>}
+          {log.length > 0 && !tech && (
+            <ul className="plain" ref={logRef} style={{ marginTop: 14 }}>
+              {log.filter(l => l.simple).map((l, i) => <li key={i} className={l.cls}>{l.cls === 'bad' ? '✗' : '✓'} {l.simple}</li>)}
+            </ul>
+          )}
+
+          {summary && tech && <p><b>{summary.dryRun ? 'Dry run finished' : 'Import finished'}:</b> <span className="ok">{summary.ok} ok</span>, <span className={summary.failed ? 'bad' : ''}>{summary.failed} failed</span>.</p>}
+          {summary && !tech && (
+            <div className={'callout' + (summary.failed ? ' bad' : '')} role="status">
+              {summary.dryRun && !summary.failed && <><b>Preview finished, no problems found.</b> Nothing was changed on the site. {summary.updated} product(s) would be updated and {summary.added} added. If this looks right: untick "Preview only" above and press "Import to the site".</>}
+              {summary.dryRun && summary.failed > 0 && <><b>{summary.failed} problem(s) found.</b> Nothing was changed on the site. Fix the problem (see the ✗ lines above) and run the preview again. If you are stuck, ask the developer.</>}
+              {!summary.dryRun && !summary.failed && <><b>Done! The changes are live on the site.</b> {summary.updated} product(s) updated, {summary.added} added. The categories and the site menu are up to date.</>}
+              {!summary.dryRun && summary.failed > 0 && <><b>Finished with {summary.failed} problem(s).</b> Everything else was saved. See the ✗ lines above, fix them in the Excel and import again. If you are stuck, ask the developer.</>}
+            </div>
+          )}
         </section>
       )}
     </main>
