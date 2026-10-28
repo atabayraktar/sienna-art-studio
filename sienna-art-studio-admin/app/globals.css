@@ -42,3 +42,9 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
 .plain li { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .callout { border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: 8px; padding: 12px 14px; margin-top: 14px; }
 .callout.bad { border-left-color: var(--bad); }
+details > summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; font-weight: 600; list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: '▸'; margin-right: 8px; }
+details[open] > summary::before { content: '▾'; }
+details > summary:hover { border-color: var(--brand); }
+details[open] > summary { margin-bottom: 8px; }

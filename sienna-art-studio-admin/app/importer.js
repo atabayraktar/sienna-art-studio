@@ -21,6 +21,7 @@ export default function Importer() {
   const [log, setLog] = useState([]);
   const [summary, setSummary] = useState(null);
   const [over, setOver] = useState(false);
+  const [inputKey, setInputKey] = useState(0); // changing it empties the file picker
   const [tech, setTech] = useState(false); // false = plain-language results, true = developer log
   const logRef = useRef(null);
 
@@ -98,6 +99,11 @@ export default function Importer() {
     setRunning(false);
   }
 
+  function startOver() {
+    setPlan(null); setFileName(''); setParseError(''); setSummary(null); setLog([]); setOnly('');
+    setDryRun(true); setProgress({ done: 0, total: 0 }); setInputKey(k => k + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   async function logout() { await post('/api/logout', {}); window.location.href = '/login'; }
   const blocked = !plan || plan.errors.length > 0 || !conn?.connected || running;
 
@@ -111,7 +117,14 @@ export default function Importer() {
       <section className="card">
         <h2>1. Shopify connection</h2>
         {!conn && <div className="muted">Checking...</div>}
-        {conn && conn.connected && <div className="ok">Connected: {conn.shopName} ({conn.domain}). Stock location: {conn.locationName || 'none'}. Online Store channel: {conn.publicationId ? 'found' : 'not found'}.</div>}
+        {conn && conn.connected && (
+          <div className="ok">
+            <div>Connected: {conn.shopName}</div>
+            <div>({conn.domain})</div>
+            <div>Stock location: {conn.locationName || 'none'}</div>
+            <div>Online Store channel: {conn.publicationId ? 'found' : 'not found'}</div>
+          </div>
+        )}
         {conn && !conn.connected && <div className="bad">Not connected. {conn.error}</div>}
       </section>
 
@@ -121,7 +134,7 @@ export default function Importer() {
           onDragOver={e => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
           onDrop={e => { e.preventDefault(); setOver(false); loadFile(e.dataTransfer.files[0]); }}>
           <p>Drop the .xlsx here or</p>
-          <input type="file" accept=".xlsx" onChange={e => loadFile(e.target.files[0])} aria-label="Choose Excel file" />
+          <input key={inputKey} type="file" accept=".xlsx" onChange={e => loadFile(e.target.files[0])} aria-label="Choose Excel file" />
           {fileName && <p className="muted">{fileName}</p>}
         </div>
         {parseError && <p className="bad" role="alert">{parseError}</p>}
@@ -142,7 +155,7 @@ export default function Importer() {
               <div className="scroll"><table><tbody>{plan.warnings.map((e, i) => <tr key={i}><td>{e.where}</td><td className="warn">{e.msg}</td></tr>)}</tbody></table></div>
             </details>
           )}
-          <details style={{ marginTop: 12 }}><summary>Products in the file</summary>
+          <details style={{ marginTop: 12 }}><summary>Show the list of products in this file</summary>
             <div className="scroll"><table>
               <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Variants</th><th>Price</th></tr></thead>
               <tbody>{plan.products.map(p => <tr key={p.code}><td>{p.code}</td><td>{p.name}</td><td>{p.category}{p.subcategory ? ' / ' + p.subcategory : ''}</td><td>{p.variants.length}</td><td>{[...new Set(p.variants.map(v => v.price))].join(', ')}</td></tr>)}</tbody>
@@ -191,6 +204,7 @@ export default function Importer() {
               {!summary.dryRun && summary.failed > 0 && <><b>Finished with {summary.failed} problem(s).</b> Everything else was saved. See the ✗ lines above, fix them in the Excel and import again. If you are stuck, ask the developer.</>}
             </div>
           )}
+          {summary && !running && <button className="ghost" style={{ marginTop: 14 }} onClick={startOver}>Start a new import</button>}
         </section>
       )}
     </main>
