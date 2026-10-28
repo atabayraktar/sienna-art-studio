@@ -96,16 +96,18 @@
             endif
           -%}
           <section class="sn-col" data-sn-col="{{ idx }}">
-            <a class="sn-col__hero" href="{{ routes.collections_url }}/{{ gp[1] }}" tabindex="-1" aria-hidden="true">
-              {%- capture top_photo -%}{%- render 'sienna-photo', top: idx, width: 640, sizes: '300px' -%}{%- endcapture -%}
-              {%- if top_photo != blank -%}
-                {{ top_photo }}
-              {%- else -%}
-                <span class="sn-col__ph" aria-hidden="true">{{ gp[0] | slice: 0 }}</span>
-              {%- endif -%}
+            <a class="sn-col__head" href="{{ routes.collections_url }}/{{ gp[1] }}">
+              <span class="sn-col__hero">
+                {%- capture top_photo -%}{%- render 'sienna-photo', top: idx, width: 640, sizes: '300px' -%}{%- endcapture -%}
+                {%- if top_photo != blank -%}
+                  {{ top_photo }}
+                {%- else -%}
+                  <span class="sn-col__ph" aria-hidden="true">{{ gp[0] | slice: 0 }}</span>
+                {%- endif -%}
+              </span>
+              <h3 class="sn-col__title">{{ gp[0] }}</h3>
+              <p class="sn-col__tag">{{ gp[2] }}</p>
             </a>
-            <h3 class="sn-col__title">{{ gp[0] }}</h3>
-            <p class="sn-col__tag">{{ gp[2] }}</p>
             <a class="sn-col__all" href="{{ routes.collections_url }}/{{ gp[1] }}">View all</a>
             <ul class="sn-col__subs">
               {%- for s in subs -%}
