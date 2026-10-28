@@ -119,8 +119,7 @@ export default function Importer() {
         {!conn && <div className="muted">Checking...</div>}
         {conn && conn.connected && (
           <div className="ok">
-            <div>Connected: {conn.shopName}</div>
-            <div>({conn.domain})</div>
+            <div>Connected: {conn.shopName} ({conn.domain})</div>
             <div>Stock location: {conn.locationName || 'none'}</div>
             <div>Online Store channel: {conn.publicationId ? 'found' : 'not found'}</div>
           </div>
