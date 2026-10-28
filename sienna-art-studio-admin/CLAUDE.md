@@ -32,3 +32,11 @@ The user writes in Turkish and wants short, plain answers. Cost must stay 0 TL (
 1. User does SETUP.md steps 1-2, runs the dry run and the one-product import; fix whatever the first real run shows.
 2. Pick free hosting, create a PRIVATE GitHub repo, deploy, set the 5 env vars there.
 3. Theme work in `../sienna-art-studio`: read the metafields for the menu, add the custom-product form.
+
+## Update (2026-10-28, later)
+
+- Repo is now a monorepo: `sienna-art-studio/` has `sienna-art-studio-shop` (theme) and `sienna-art-studio-admin` (this panel). Git root is `sienna-art-studio/` (remote `atabayraktar/sienna-art-studio`, branch main). Commit `9cf5491` is local, NOT pushed yet. User will make the GitHub repo private LAST (after deploy works).
+- Shopify Dev Dashboard app `Sienna Admin` is created, released (`sienna-admin-1`) and installed on the store. `.env.local` is filled (user `sabo`, generated password, client id/secret, session secret). Nothing has been run yet.
+- Deploy plan: Cloudflare (the user already has the site on Cloudflare and is logged in), test directly on the deployed site, no local test. Env vars must be entered in Cloudflare by hand (same 6 names as `.env.example`).
+- The user is a first-timer here: give ONE small step at a time, say exactly where to click.
+- Old copy `personal-projects/sienna-art-studio-admin` can be deleted.
