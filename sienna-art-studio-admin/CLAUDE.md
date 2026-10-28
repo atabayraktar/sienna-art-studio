@@ -1,57 +1,32 @@
 # sienna-art-studio-admin
 
-Admin panel for the Sienna Art Studio Shopify store. The shop team uploads ONE Excel; the panel creates/updates categories (collections) and products in Shopify. Next.js (app router, JS), free hosting, single admin login.
+Admin panel for the Sienna Art Studio Shopify store. The shop team uploads ONE Excel; the panel creates/updates categories (collections), products and the site menu in Shopify. Next.js (app router, JS), Cloudflare Workers, single admin login.
 
-The user writes in Turkish and wants short, plain answers. Cost must stay 0 TL (no card-required services). Only push/deploy when asked.
+The user writes in Turkish and wants short, plain answers. Cost must stay 0 TL (no card-required services). Only push/deploy when asked. The user is a first-timer: give ONE small step at a time, say exactly where to click. Run `npm test` AND `npx next build` before pushing (a push to main = production deploy).
 
 ## Where things are
 
-- Setup + first run: `SETUP.md` (Turkish). Tests: `npm test` (26 checks, includes known-bad Excel inputs that must be rejected).
-- `lib/parse-workbook.js`: Excel -> validated plan (runs in the browser). `lib/payload.js`: plan -> Shopify `productSet` / collection inputs (pure). `lib/import-logic.js`: the Shopify calls. `lib/shopify.js`: client-credentials token + GraphQL (API 2026-07). `lib/auth.js`: login (scrypt hash + signed cookie). `app/importer.js`: the UI.
-- The Excel format is in `samples/sienna-products-import.xlsx` (README tab explains it). Two tabs of data: `Categories` and `Products`. Rows with the same Product Code are variants of one product. `-` means "leave as is".
-- Related repo (the Shopify theme): `../sienna-art-studio`. Store: `sienna-art-studio-eiknbuj0`, live theme id `193799127403`, site https://siennaartstudio.shop.
+- Monorepo, git root `sienna-art-studio/` (remote `atabayraktar/sienna-art-studio`, branch main): `sienna-art-studio-shop` = Shopify theme, `sienna-art-studio-admin` = this panel.
+- Live: https://admin.siennaartstudio.shop (Cloudflare Workers via the OpenNext adapter, git-connected build, root dir `sienna-art-studio-admin`; `wrangler.jsonc` has the custom-domain route and the 3 plain env vars). The 3 secrets (`SHOPIFY_CLIENT_SECRET`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`) live only in Cloudflare: Worker > Settings > Runtime variables and secrets. Store `sienna-art-studio-eiknbuj0`, live theme id `193799127403`, site https://siennaartstudio.shop. Shopify Dev Dashboard app `Sienna Admin` is installed (client credentials).
+- Code: `lib/parse-workbook.js` Excel -> validated plan (browser). `lib/payload.js` plan -> Shopify inputs (+ `buildMenu`). `lib/import-logic.js` the Shopify calls. `lib/shopify.js` token + GraphQL (API 2026-07). `lib/auth.js` login. `app/importer.js` the UI. Tests: `npm test` (28 checks).
+- Excel: `samples/sienna-products-import.xlsx` (README tab explains it, incl. add/change/hide/remove). Tabs `Categories` and `Products`. Same Product Code = variants of one product. `-` = leave as is. `samples/sienna-test-import.xlsx` = same + one test product `SAS-TEST-01` (not for real use).
 
-## State (2026-10-28)
+## How it works / decisions
 
-- Code is done and committed locally. **It has never been run against the real store.** Verified so far: unit tests with a fake Shopify, all GraphQL validated against the 2026-07 schema, login/CSRF smoke test.
-- Not done yet by the user: create the Shopify Dev Dashboard app (scopes in SETUP.md), put the Client ID/secret in `.env.local`, run a Dry run, then import ONE product (`SAS-TOY-01`) live before importing all 38.
-- Not pushed to GitHub (no remote yet). Hosting not chosen: Vercel Hobby is "non-commercial" by its terms; Netlify/Cloudflare free allow commercial use.
+- Products are found by SKU. A store product with an EMPTY SKU is not found and the import makes a copy: give hand-made products their SKU first. `productSet` DELETES store variants missing from the Excel: dry run first.
+- The panel NEVER deletes products (by design). Hide = Status `draft`; real delete = Shopify admin. Removing a Categories row only removes it from the site menu.
+- Collection titles are renamed to the Excel name on import; handles stay (table in `lib/payload.js`). Smart (rule based) collections get a warning and no manual products (normal).
+- Every import writes the category tree to the shop metafield `sienna.menu` (JSON, Excel order). The theme's `snippets/sienna-nav.liquid` reads it (desktop, mobile, sidebar, title) and uses each top category's wide `headerImage`; it falls back to the old hardcoded list only if the metafield is empty. Theme file pushed with `shopify theme push --only snippets/sienna-nav.liquid --live --allow-live`.
+- Collection metafields `sienna.tagline|header_image|parent` and product metafields `sienna.is_custom|customer_fields|dimensions` are written, but nothing in the theme reads them (only the menu JSON is used).
+- UI: card "4. Send to the site" has an "I know coding" switch (default off = plain-language results + callout; on = developer log), "Preview only (Dry run)" wording, "Start a new import" button.
 
-## Decisions and gotchas
+## State (2026-10-29)
 
-- `productSet` DELETES store variants that are missing from the Excel. Always dry run first.
-- Existing store collections are matched by handle through the table in `lib/payload.js` (Excel names differ from store titles, e.g. "Home & Lighting" = `all-lamps`). Titles get renamed to the Excel name on import.
-- Smart (rule based) collections cannot take products by the panel; it warns.
-- Products are found by SKU. Image URLs of existing products are reused by media id to avoid duplicate uploads (never seen live yet: check this on the first real import).
-- Panel writes category tagline / wide header image / parent into collection metafields `sienna.tagline|header_image|parent`, and custom-product fields into product metafields `sienna.is_custom|customer_fields` (+ `sienna.dimensions`). **The theme does not read them yet**: the header menu is hardcoded in the theme's `snippets/sienna-nav.liquid`. Wiring the theme to these metafields is a separate task.
-- The custom portrait product (`SAS-CUSTOM-01`) has no customer form on the site yet (photo upload, names, special requests).
-- Excel stock is 1 on every row (placeholder), descriptions are mostly `-` on purpose (the shop owner fills them).
+Done and verified live: deploy, login, Shopify connection, create + update of products, menu from Excel, wide menu images, Excel README, UI polish. All 38 products match the Excel (variants, images, status).
 
-## Next steps
+## Not done / open
 
-1. User does SETUP.md steps 1-2, runs the dry run and the one-product import; fix whatever the first real run shows.
-2. Pick free hosting, create a PRIVATE GitHub repo, deploy, set the 5 env vars there.
-3. Theme work in `../sienna-art-studio`: read the metafields for the menu, add the custom-product form.
-
-## Update (2026-10-28, later)
-
-- Repo is now a monorepo: `sienna-art-studio/` has `sienna-art-studio-shop` (theme) and `sienna-art-studio-admin` (this panel). Git root is `sienna-art-studio/` (remote `atabayraktar/sienna-art-studio`, branch main). Commit `9cf5491` is local, NOT pushed yet. User will make the GitHub repo private LAST (after deploy works).
-- Shopify Dev Dashboard app `Sienna Admin` is created, released (`sienna-admin-1`) and installed on the store. `.env.local` is filled (user `sabo`, generated password, client id/secret, session secret). Nothing has been run yet.
-- Deploy plan: Cloudflare (the user already has the site on Cloudflare and is logged in), test directly on the deployed site, no local test. Env vars must be entered in Cloudflare by hand (same 6 names as `.env.example`).
-- The user is a first-timer here: give ONE small step at a time, say exactly where to click.
-- Old copy `personal-projects/sienna-art-studio-admin` can be deleted.
-
-## Update (2026-10-28, night)
-
-- DEPLOYED: Cloudflare Workers (OpenNext adapter, `wrangler.jsonc`, git-connected build from this repo, root dir `sienna-art-studio-admin`) at https://admin.siennaartstudio.shop (custom domain set via `routes` in wrangler.jsonc; zone is on the user's Cloudflare account). Login works, Shopify shows "Connected". The 3 secrets live only in Cloudflare (Settings > Runtime variables and secrets); the 3 plain vars are also in wrangler.jsonc so deploys do not drop them. A push to main = production deploy.
-- NEW: every import writes the whole category tree to the SHOP metafield `sienna.menu` (JSON, Excel order: top categories with `children`). `lib/payload.js buildMenu`, `lib/import-logic.js writeMenu`, route `/api/import/menu`. Not yet run live: if it fails with an access error, the app may need an extra scope (check the error text).
-- Theme (`../sienna-art-studio-shop/snippets/sienna-nav.liquid`) now reads that metafield for desktop, mobile, sidebar and title; falls back to the old hardcoded list while the metafield is empty. Theme change is committed but NOT pushed to Shopify yet (push after the first import wrote the metafield).
-- Test file: `samples/sienna-test-import.xlsx` = real Excel + one draft product `SAS-TEST-01` (not in the real Excel on purpose). Plan: create -> change price and re-import (update) -> delete by hand in Shopify admin (the panel never deletes).
-- Menu text now comes from Excel: sub-category taglines are `-` in the Excel so they show blank; theme extras not in Excel (Photo to Cartoon Portraits, Personalized Gifts sub) disappear from the menu.
-
-## Update (2026-10-29)
-
-- Live tests done and passed: create, update, and manual delete (panel never deletes; hide = Status draft). 37 existing products matched by SKU; the portrait product had an empty SKU on the store, so the first import made a copy (`-1`); user deleted the copy and the original now has SKU `SAS-CUSTOM-01`. Test product is gone.
-- Theme nav (`snippets/sienna-nav.liquid`) is LIVE on theme 193799127403 and reads `sienna.menu`; verified on siennaartstudio.shop (extra subcategories gone). Pushed with `shopify theme push --only snippets/sienna-nav.liquid --live --allow-live`.
-- Excel README tab has a new section "Adding, changing, hiding and removing products". Next: small UI tweaks in the admin panel; GitHub repo made private LAST.
-- UI (2026-10-29): importer card "4. Send to the site" has an "I know coding" switch (default off = plain results + callout, on = old terminal log), "Preview only (Dry run)" wording, "Start a new import" button. Decided NOT to do: private repo, moving menu images (`t/12/assets` links in the Excel) to Shopify Files. Optional later: Turkish UI text, delete status.
+- **Custom portrait product (`SAS-CUSTOM-01`) fields:** the customer fields on its page (photo upload, names, special requests) come from the third-party Shopify app **Easify Product Options**, configured inside that app (theme has no `properties[]` inputs). The Excel columns `Custom Product` / `Customer Fields` only write product metafields that nothing reads, so a NEW custom product added through the Excel gets no form. Options: (a) keep Easify and attach each new custom product to its option set in the app by hand, (b) build the form in the theme from `customer_fields` (needs file upload handling), (c) drop the two Excel columns. Not decided.
+- Shop owner still has to fill product descriptions (`-` in the Excel) and real stock (every Stock Qty is 1, placeholder).
+- Decided NOT to do (don't ask again): making the GitHub repo private, moving the menu images (`t/12/assets` links in the Excel) to Shopify Files.
+- Optional ideas: Turkish UI text, a delete status with confirmation, trying the panel once from a phone/iPad (never tested on a device).
