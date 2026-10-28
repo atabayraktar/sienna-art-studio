@@ -12,7 +12,7 @@
     assign g_str = ''
     assign s_str = ''
     for mt in menu
-      assign g_str = g_str | append: mt.name | append: '~' | append: mt.handle | append: '~' | append: mt.tagline | append: '||'
+      assign g_str = g_str | append: mt.name | append: '~' | append: mt.handle | append: '~' | append: mt.tagline | append: '~' | append: mt.headerImage | append: '||'
       for ms in mt.children
         assign s_str = s_str | append: ms.name | append: '~' | append: ms.handle | append: '~' | append: ms.tagline | append: '^'
       endfor
@@ -103,7 +103,14 @@
           <section class="sn-col" data-sn-col="{{ idx }}">
             <a class="sn-col__head" href="{{ routes.collections_url }}/{{ gp[1] }}">
               <span class="sn-col__hero">
-                {%- capture top_photo -%}{%- render 'sienna-photo', top: idx, width: 640, sizes: '300px' -%}{%- endcapture -%}
+                {%- comment -%}Wide menu picture from the Excel (Header Image URL); product photo only when the Excel has none.{%- endcomment -%}
+                {%- capture top_photo -%}
+                  {%- if gp[3] != blank -%}
+                    <img src="{{ gp[3] }}" alt="" width="1500" height="500" loading="lazy">
+                  {%- else -%}
+                    {%- render 'sienna-photo', top: idx, width: 640, sizes: '300px' -%}
+                  {%- endif -%}
+                {%- endcapture -%}
                 {%- if top_photo != blank -%}
                   {{ top_photo }}
                 {%- else -%}
