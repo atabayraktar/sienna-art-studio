@@ -7,5 +7,11 @@
 	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
+	},
+	// Secrets (SHOPIFY_CLIENT_SECRET, ADMIN_PASSWORD_HASH, SESSION_SECRET) live only in the Cloudflare dashboard.
+	"vars": {
+		"SHOPIFY_STORE": "sienna-art-studio-eiknbuj0",
+		"SHOPIFY_CLIENT_ID": "b625b02190432a2e4ec1284cb21d98fc",
+		"ADMIN_USERNAME": "sabo"
 	}
 }
