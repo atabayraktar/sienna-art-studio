@@ -48,3 +48,9 @@ The user writes in Turkish and wants short, plain answers. Cost must stay 0 TL (
 - Theme (`../sienna-art-studio-shop/snippets/sienna-nav.liquid`) now reads that metafield for desktop, mobile, sidebar and title; falls back to the old hardcoded list while the metafield is empty. Theme change is committed but NOT pushed to Shopify yet (push after the first import wrote the metafield).
 - Test file: `samples/sienna-test-import.xlsx` = real Excel + one draft product `SAS-TEST-01` (not in the real Excel on purpose). Plan: create -> change price and re-import (update) -> delete by hand in Shopify admin (the panel never deletes).
 - Menu text now comes from Excel: sub-category taglines are `-` in the Excel so they show blank; theme extras not in Excel (Photo to Cartoon Portraits, Personalized Gifts sub) disappear from the menu.
+
+## Update (2026-10-29)
+
+- Live tests done and passed: create, update, and manual delete (panel never deletes; hide = Status draft). 37 existing products matched by SKU; the portrait product had an empty SKU on the store, so the first import made a copy (`-1`); user deleted the copy and the original now has SKU `SAS-CUSTOM-01`. Test product is gone.
+- Theme nav (`snippets/sienna-nav.liquid`) is LIVE on theme 193799127403 and reads `sienna.menu`; verified on siennaartstudio.shop (extra subcategories gone). Pushed with `shopify theme push --only snippets/sienna-nav.liquid --live --allow-live`.
+- Excel README tab has a new section "Adding, changing, hiding and removing products". Next: small UI tweaks in the admin panel; GitHub repo made private LAST.
