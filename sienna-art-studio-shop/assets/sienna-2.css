@@ -3835,6 +3835,11 @@ html[data-theme='dark'] .collection .quick-add__details:hover {
 /* Best sellers / New arrivals: hand-picked product rows */
 .s-products {
   padding: 6rem 0 5rem;
+  background: var(--s-sand);
+  transition: background-color 0.7s;
+}
+html[data-theme='dark'] .s-products {
+  background: #261f2d;
 }
 .s-products .page-width {
   max-width: 140rem;
@@ -5830,4 +5835,49 @@ html:not([data-theme='dark']) .product-form__input input[type='radio']:disabled:
 .sn-col__head:focus-visible .sn-col__title {
   text-decoration: underline;
   text-underline-offset: 0.3rem;
+}
+
+/* Product rows (Best sellers, New arrivals, collection pages): every card in a row is the same height.
+   A sale price that wraps onto two lines used to make its card taller than its neighbours. */
+html .s-products .product-grid > .grid__item,
+html .s-shop .product-grid > .grid__item {
+  display: flex;
+  flex-direction: column;
+}
+html .s-products .grid__item > product-component,
+html .s-shop .grid__item > product-component,
+html .s-products .card-wrapper,
+html .s-shop .card-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+html .s-products .card-wrapper > .card,
+html .s-shop .card-wrapper > .card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: auto;
+}
+html .s-products .card__content,
+html .s-shop .card__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+html .s-products .card__information,
+html .s-shop .card__information {
+  flex: 1 1 auto;
+}
+html .s-products .card__heading,
+html .s-shop .card__heading {
+  min-height: 2.6em;
+}
+html .s-products .card-information,
+html .s-shop .card-information {
+  min-height: 2.9em;
+}
+html .s-products .quick-add,
+html .s-shop .quick-add {
+  margin-top: auto;
 }

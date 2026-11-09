@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Main-category page (sections/sienna-category-hub.liquid)
+   Sub-category cards. Phones: 2 per row. Tablets: 3. Wide screens: up to 5, left aligned,
+   so one or two cards keep the same size instead of stretching.
+   ========================================================================== */
+/* Side padding and width come from the theme's own .page-width, so the cards line up with the title above them. */
+.hub {
+  padding: 1.4rem 0 6rem;
+}
+.hub__lead {
+  margin: 0 0 3rem;
+  font: 400 1.6rem / 1.5 var(--font-body-family);
+  color: var(--s-ink-soft, rgba(34, 34, 34, 0.68));
+}
+.hub__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 1.2rem;
+}
+.hubcard {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.hubcard__link {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--s-r);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--s-sand);
+  color: #faf6ee;
+  text-decoration: none;
+  box-shadow: 0 0 0 1px var(--s-line);
+}
+.hubcard__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.hubcard__img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+  transition: transform 1s var(--s-ease);
+}
+.hubcard__link:hover .hubcard__img img,
+.hubcard__link:focus-visible .hubcard__img img {
+  transform: scale(1.11);
+}
+.hubcard__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to top, rgba(18, 14, 16, 0.88) 0%, rgba(18, 14, 16, 0.5) 30%, rgba(18, 14, 16, 0) 58%);
+}
+.hubcard__meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: 0.3rem;
+  padding: 1.4rem;
+}
+.hubcard__name {
+  font: 380 clamp(1.8rem, 4.6vw, 2.4rem) / 1.12 var(--font-heading-family);
+  letter-spacing: -0.01em;
+  color: #faf6ee;
+}
+.hubcard__note {
+  font: 400 1.25rem / 1.4 var(--font-body-family);
+  color: rgba(250, 246, 238, 0.85);
+}
+.hubcard__go {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  color: #faf6ee;
+  background: rgba(24, 18, 20, 0.34);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: inset 0 0 0 1px rgba(250, 246, 238, 0.55);
+  transition: background 0.3s var(--s-ease), color 0.3s var(--s-ease), box-shadow 0.3s var(--s-ease),
+    transform 0.4s var(--s-ease);
+}
+.hubcard__go svg {
+  transition: transform 0.45s var(--s-ease);
+}
+.hubcard__link:hover .hubcard__go,
+.hubcard__link:focus-visible .hubcard__go {
+  background: var(--s-gold);
+  color: #1e1a1c;
+  box-shadow: inset 0 0 0 1px var(--s-gold);
+  transform: scale(1.08);
+}
+.hubcard__link:hover .hubcard__go svg,
+.hubcard__link:focus-visible .hubcard__go svg {
+  transform: rotate(45deg);
+}
+.hubcard__link:focus-visible {
+  outline: 2px solid var(--s-gold);
+  outline-offset: 3px;
+}
+
+@media screen and (min-width: 750px) {
+  .hub {
+    padding-bottom: 7rem;
+  }
+  .hub__grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: 1.8rem;
+  }
+  .hubcard__meta {
+    padding: 1.8rem;
+  }
+  .hubcard__note {
+    font-size: 1.35rem;
+  }
+  .hubcard__go {
+    top: 1.4rem;
+    right: 1.4rem;
+    width: 4.4rem;
+    height: 4.4rem;
+  }
+}
+@media screen and (min-width: 1200px) {
+  .hub__grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hubcard__img img,
+  .hubcard__go,
+  .hubcard__go svg {
+    transition-duration: 0.01ms !important;
+  }
+}

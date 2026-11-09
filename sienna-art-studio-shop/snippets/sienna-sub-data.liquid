@@ -1,0 +1,31 @@
+{%- comment -%}
+  Sub-categories of one MAIN category, as text: Name~handle~tagline^Name~handle~tagline
+  Param: handle = the main category's collection handle.
+  Prints nothing when the handle is not one of the four main categories, so the caller can use
+  that to tell a main-category page (shows sub-category cards) from a normal collection page (shows products).
+  Data comes from the shop metafield sienna.menu (written by the admin panel on every import); the old
+  hardcoded list is only used until the first import has written it (same as snippets/sienna-nav.liquid).
+{%- endcomment -%}
+{%- liquid
+  assign menu = shop.metafields.sienna.menu.value
+  if menu != blank
+    for mt in menu
+      if mt.handle == handle
+        for ms in mt.children
+          echo ms.name | append: '~' | append: ms.handle | append: '~' | append: ms.tagline | append: '^'
+        endfor
+      endif
+    endfor
+  else
+    case handle
+      when 'all-lamps'
+        echo 'Mosaic & Stained Glass~mosaic-stained-glass~Colorful glass lamps^Modern Lamps~modern~Clean, sculpted lines^Rechargeable Lamps~rechargeable~Cordless, carry anywhere^Crystal Glow Lamps~crystal-glow-lamps~Etched crystal light^Animal Stained Glass Lamps~animal-stained-glass-lamps~Figures in colored glass'
+      when 'personalized-gifts'
+        echo 'Custom Art~custom-art-personalized-gifts~Portraits from your photos'
+      when 'toys-kids'
+        echo 'Squishy Toys~squishy-toys~Soft, slow-rising and silly^Kids’ Night Lights~kids-night-lights~Soft glow for bedtime'
+      when 'home-decor'
+        echo 'Decorative Accents~decorative-accents~Shelf and table pieces'
+    endcase
+  endif
+-%}

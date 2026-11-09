@@ -5,15 +5,34 @@
 <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
 
+{%- comment -%}
+  The products come from the admin panel's Excel tab "Best Sellers & New Arrivals" (shop metafield sienna.featured,
+  one list per section: setting "List from the Excel"). With no list yet, the products picked below are shown.
+{%- endcomment -%}
 {%- liquid
-  assign n = section.blocks.size
+  assign feed_handles = blank
+  if section.settings.feed != 'none'
+    assign feed_all = shop.metafields.sienna.featured.value
+    assign feed_key = section.settings.feed
+    assign feed_handles = feed_all[feed_key]
+  endif
+  assign use_feed = false
+  if feed_handles.size > 0
+    assign use_feed = true
+    assign n = feed_handles.size
+    if n > 5
+      assign n = 5
+    endif
+  else
+    assign n = section.blocks.size
+  endif
   if n > 4
     assign cols = 5
   else
     assign cols = 4
   endif
 -%}
-<section class="s-products collection">
+<section class="s-products collection" id="s-{{ section.id | split: '__' | last | replace: '_', '-' }}">
   <div class="page-width">
     {%- if section.settings.title != blank or section.settings.link_label != blank -%}
       <header class="s-head">
@@ -34,6 +53,29 @@
       role="list"
     >
       {%- assign skip_card_product_styles = false -%}
+      {%- if use_feed -%}
+        {%- for handle in feed_handles limit: 5 -%}
+          {%- assign product = all_products[handle] -%}
+          {%- if product != blank -%}
+            <li class="grid__item">
+              {% render 'card-product',
+                card_product: product,
+                media_aspect_ratio: 'square',
+                image_shape: 'default',
+                lazy_load: true,
+                show_secondary_image: true,
+                show_vendor: false,
+                show_rating: false,
+                skip_styles: skip_card_product_styles,
+                section_id: section.id,
+                quick_add: 'standard',
+                product_view_context: 'collection'
+              %}
+            </li>
+            {%- assign skip_card_product_styles = true -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- else -%}
       {%- for block in section.blocks -%}
         {%- assign product = block.settings.product -%}
         {%- if product != blank -%}
@@ -55,6 +97,7 @@
           {%- assign skip_card_product_styles = true -%}
         {%- endif -%}
       {%- endfor -%}
+      {%- endif -%}
     </ul>
   </div>
 </section>
@@ -65,6 +108,18 @@
   "max_blocks": 5,
   "settings": [
     { "type": "text", "id": "title", "label": "Heading", "default": "Best sellers" },
+    {
+      "type": "select",
+      "id": "feed",
+      "label": "List from the Excel",
+      "info": "Takes the products from the Excel tab \"Best Sellers & New Arrivals\" when the admin panel has sent a list. Empty list: the products picked below are shown.",
+      "options": [
+        { "value": "none", "label": "Not from the Excel (pick products below)" },
+        { "value": "best_sellers", "label": "Excel: Best sellers" },
+        { "value": "new_arrivals", "label": "Excel: New arrivals" }
+      ],
+      "default": "none"
+    },
     { "type": "text", "id": "link_label", "label": "Link label (leave empty for no link)", "default": "Shop all" },
     { "type": "url", "id": "link_url", "label": "Link" }
   ],

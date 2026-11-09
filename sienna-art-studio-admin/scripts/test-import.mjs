@@ -2,7 +2,7 @@
 import ExcelJS from 'exceljs';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { parseWorkbook, sheetToObjects } from '../lib/parse-workbook.js';
+import { parseWorkbook, sheetToObjects, FEATURED_TAB } from '../lib/parse-workbook.js';
 import { buildProductSetInput, buildMenu, collectionHandle, toHtml } from '../lib/payload.js';
 
 let pass = 0;
@@ -12,7 +12,8 @@ async function load(mutate) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(fileURLToPath(new URL('../samples/sienna-products-import.xlsx', import.meta.url)));
   if (mutate) mutate(wb);
-  return parseWorkbook({ categoriesSheet: sheetToObjects(wb.getWorksheet('Categories')), productsSheet: sheetToObjects(wb.getWorksheet('Products')) });
+  const f = wb.getWorksheet(FEATURED_TAB);
+  return parseWorkbook({ categoriesSheet: sheetToObjects(wb.getWorksheet('Categories')), productsSheet: sheetToObjects(wb.getWorksheet('Products')), featuredSheet: f ? sheetToObjects(f) : undefined });
 }
 const col = (ws, h) => { let n = 0; ws.getRow(1).eachCell((c, i) => { if (c.value === h) n = i; }); return n; };
 
@@ -20,9 +21,25 @@ const real = await load();
 
 await t('real workbook: no errors, expected counts', () => {
   assert.deepEqual(real.errors, []);
-  assert.equal(real.categories.length, 18);
-  assert.equal(real.products.length, 38);
-  assert.equal(real.products.reduce((n, p) => n + p.variants.length, 0), 55);
+  assert.equal(real.categories.length, 13);
+  assert.equal(real.products.length, 91);
+  assert.equal(real.products.reduce((n, p) => n + p.variants.length, 0), 95);
+  // every product sits in a sub-category, never directly in a main category
+  assert.ok(real.products.every(p => p.subcategory), 'a product has no subcategory');
+});
+
+await t('home page lists tab: 5 best sellers + 5 new arrivals, in row order, no errors', () => {
+  assert.equal(real.featured.best_sellers.length, 5);
+  assert.equal(real.featured.new_arrivals.length, 5);
+  assert.equal(real.featured.best_sellers[0], 'SAS-LAMP-SBL');
+  assert.equal(real.warnings.filter(w => w.where.startsWith('Best Sellers')).length, 0);
+});
+await t('no home page tab: lists are left alone (featured = null)', async () => {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(fileURLToPath(new URL('../samples/sienna-products-import.xlsx', import.meta.url)));
+  const r = parseWorkbook({ categoriesSheet: sheetToObjects(wb.getWorksheet('Categories')), productsSheet: sheetToObjects(wb.getWorksheet('Products')) });
+  assert.equal(r.featured, null);
+  assert.deepEqual(r.errors, []);
 });
 
 // ---- known-bad inputs: each must produce an error mentioning the expected text
@@ -31,13 +48,23 @@ const bad = (name, mutate, expect) => t('rejects: ' + name, async () => {
   assert.ok(r.errors.some(e => e.msg.includes(expect)), `expected an error containing "${expect}", got: ${JSON.stringify(r.errors.slice(0, 3))}`);
 });
 await bad('unknown category', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Category')).value = 'Nope'; }, 'is not a Category');
+await bad('6 best sellers (max is 5)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(12, 1).value = 'Best sellers'; ws.getCell(12, 2).value = 'SAS-LAMP-DCG'; }, 'at most 5');
+await bad('unknown home page section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 1).value = 'Top picks'; }, 'Section must be');
+await bad('same SKU twice in one section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(3, 2).value = ws.getCell(2, 2).value; }, 'listed twice');
+await bad('home page row without a SKU', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 2).value = '-'; }, 'SKU is empty');
+await t('a SKU that is only in the store is allowed, with a note', async () => {
+  const r = await load(wb => { wb.getWorksheet(FEATURED_TAB).getCell(2, 2).value = 'ONLY-IN-STORE-1'; });
+  assert.deepEqual(r.errors, []);
+  assert.ok(r.warnings.some(w => w.msg.includes('ONLY-IN-STORE-1') && w.msg.includes('already exist in the store')));
+});
+await bad('product without a subcategory (only the main category)', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Subcategory')).value = '-'; }, 'Subcategory is empty');
 await bad('subcategory of another category', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Subcategory')).value = 'Squishy Toys'; }, 'belongs to');
 await bad('duplicate SKU', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(3, col(ws, 'SKU')).value = ws.getCell(2, col(ws, 'SKU')).value; }, 'already used');
 await bad('price text', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Price (USD)')).value = '$10'; }, 'Price must be a number');
 await bad('stock decimal', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Stock Qty')).value = 1.5; }, 'whole number');
 await bad('image not https', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(3, col(ws, 'Image 1')).value = 'C:\\pics\\a.jpg'; }, 'not an https link');
 await bad('renamed column', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(1, col(ws, 'Price (USD)')).value = 'Price'; }, 'Missing column');
-await bad('product rows split apart', wb => { const ws = wb.getWorksheet('Products'); const c = col(ws, 'Product Code'); const a = ws.getCell(46, c).value; ws.getCell(46, c).value = ws.getCell(10, c).value; ws.getCell(10, c).value = a; }, 'not together');
+await bad('product rows split apart', wb => { const ws = wb.getWorksheet('Products'); const c = col(ws, 'Product Code'); ws.getCell(4, c).value = ws.getCell(2, c).value; }, 'not together');
 await bad('custom product without fields', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Customer Fields')).value = '-'; }, 'Customer Fields is empty');
 await bad('bad status', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Status')).value = 'live'; }, 'active or draft');
 await bad('subcategory without parent', wb => { const ws = wb.getWorksheet('Categories'); ws.getCell(3, col(ws, 'Parent Category')).value = '-'; }, 'needs a Parent');
@@ -46,16 +73,22 @@ await bad('subcategory without parent', wb => { const ws = wb.getWorksheet('Cate
 const by = code => real.products.find(p => p.code === code);
 const LOC = 'gid://shopify/Location/1';
 
-await t('swan lamp: 12 variants, one Pattern option, variant files, stock + location', () => {
-  const i = buildProductSetInput(by('SAS-SWAN'), { locationId: LOC, collectionIds: ['gid://c/1'] });
-  assert.equal(i.variants.length, 12);
-  assert.deepEqual(i.productOptions.map(o => o.name), ['Pattern']);
-  assert.equal(i.productOptions[0].values.length, 12);
+await t('two-color toy: 2 variants, one Color option, variant files, stock + location', () => {
+  const i = buildProductSetInput(by('SAS-TOY-05'), { locationId: LOC, collectionIds: ['gid://c/1'] });
+  assert.equal(i.variants.length, 2);
+  assert.deepEqual(i.productOptions.map(o => o.name), ['Color']);
+  assert.equal(i.productOptions[0].values.length, 2);
   assert.ok(i.variants.every(v => v.file && v.file.originalSource.startsWith('https://')));
-  assert.deepEqual(i.variants[0].inventoryQuantities, [{ locationId: LOC, name: 'available', quantity: 1 }]);
+  const q = i.variants[0].inventoryQuantities;
+  assert.equal(q.length, 1);
+  assert.equal(q[0].locationId, LOC); assert.equal(q[0].name, 'available'); assert.ok(Number.isInteger(q[0].quantity));
   assert.equal(i.files, undefined); // all its pictures are variant pictures
   assert.deepEqual(i.collections, ['gid://c/1']);
-  assert.equal(i.metafields.find(m => m.key === 'dimensions').value, '13 x 12 x H38cm');
+});
+await t('dimensions go to a product metafield', () => {
+  const p = real.products.find(x => x.dimensions);
+  const i = buildProductSetInput(p, { locationId: LOC });
+  assert.equal(i.metafields.find(m => m.key === 'dimensions').value, p.dimensions);
 });
 await t('marble lamp: two options, both named', () => {
   const i = buildProductSetInput(by('SAS-LED'), { locationId: LOC });
@@ -69,7 +102,7 @@ await t('single product: Default Title, gallery files, no description when "-"',
   assert.equal(i.variants[0].optionValues[0].name, 'Default Title');
   assert.equal(i.files.length, 3);
   assert.equal(i.descriptionHtml, undefined);
-  assert.equal(i.variants[0].inventoryItem.measurement.weight.unit, 'GRAMS');
+  assert.equal(i.variants[0].inventoryItem.sku, 'SAS-LAMP-RCG');
   assert.equal(i.status, 'ACTIVE');
 });
 await t('custom product: metafields + description html', () => {
@@ -101,7 +134,7 @@ await t('html escaping', () => assert.equal(toHtml('a <b> & c\n\nsecond'), '<p>a
 // ---- import steps against a fake Shopify
 process.env.SHOPIFY_STORE = 'test-store';
 process.env.SHOPIFY_ADMIN_TOKEN = 'shpat_test';
-const { upsertProduct, upsertCollection, writeMenu, prepare } = await import('../lib/import-logic.js');
+const { upsertProduct, upsertCollection, writeMenu, writeFeatured, prepare } = await import('../lib/import-logic.js');
 const calls = [];
 let existing = null;
 globalThis.fetch = async (url, init) => {
@@ -155,7 +188,7 @@ await t('SKUs split across two store products are refused', async () => {
     if (query.includes('productVariants(')) return { ok: true, status: 200, json: async () => ({ data: { productVariants: { nodes: [{ sku: 'a', product: { id: 'P1', handle: 'a', media: { nodes: [] } } }, { sku: 'b', product: { id: 'P2', handle: 'b', media: { nodes: [] } } }] } } }) };
     return orig(u, init);
   };
-  await assert.rejects(upsertProduct(by('SAS-SWAN'), { collectionIds: [], locationId: LOC, publicationId: null, dryRun: false }), /different products/);
+  await assert.rejects(upsertProduct(by('SAS-TOY-05'), { collectionIds: [], locationId: LOC, publicationId: null, dryRun: false }), /different products/);
   globalThis.fetch = orig;
 });
 await t('collection: existing live handle is updated, new one is created, metafields set', async () => {
@@ -171,9 +204,38 @@ await t('menu: 4 top categories in Excel order, children grouped, handles kept',
   const m = buildMenu(real.categories);
   assert.deepEqual(m.map(g => g.name), ['Home & Lighting', 'Personalized Gifts', 'Toys & Kids', 'Home Decor']);
   assert.equal(m[0].handle, 'all-lamps');
-  assert.deepEqual(m[2].children.map(c => c.handle), ['squishy-toys', 'mini-figures', 'kids-night-lights']);
-  assert.equal(m.reduce((n, g) => n + g.children.length, 0), 14);
+  assert.deepEqual(m[2].children.map(c => c.handle), ['squishy-toys', 'kids-night-lights']);
+  assert.equal(m.reduce((n, g) => n + g.children.length, 0), 9);
 });
+await t('home page lists: handles of this import are used, others are looked up, metafield sienna.featured is written', async () => {
+  const orig = globalThis.fetch; const seen = [];
+  globalThis.fetch = async (u, init) => {
+    const { query, variables } = JSON.parse(init.body); seen.push({ query, variables });
+    const ok = data => ({ ok: true, status: 200, json: async () => ({ data }), text: async () => '' });
+    if (query.includes('productVariants(')) return ok({ productVariants: { nodes: variables.q.includes('IN-STORE') ? [{ sku: 'IN-STORE', product: { handle: 'store-only', status: 'ACTIVE' } }] : [] } });
+    if (query.trim() === '{ shop { id } }') return ok({ shop: { id: 'gid://shopify/Shop/1' } });
+    if (query.includes('metafieldsSet')) return ok({ metafieldsSet: { userErrors: [] } });
+    throw new Error('unexpected ' + query.slice(0, 40));
+  };
+  try {
+    const f = { best_sellers: ['A-1', 'IN-STORE'], new_arrivals: ['B-1'] };
+    const dry = await writeFeatured(f, { handles: { 'A-1': 'a-one', 'B-1': 'b-one' } }, true);
+    assert.equal(dry.action, 'write'); assert.equal(dry.bestSellers, 2); assert.equal(dry.newArrivals, 1);
+    assert.ok(seen.every(c => !c.query.includes('mutation')), 'dry run must not write');
+    seen.length = 0;
+    const w = await writeFeatured(f, { handles: { 'A-1': 'a-one', 'B-1': 'b-one' }, draftSkus: ['B-1'] }, false);
+    assert.equal(w.action, 'written'); assert.deepEqual(w.hidden, ['B-1']);
+    const mf = seen.find(c => c.query.includes('metafieldsSet')).variables.m[0];
+    assert.equal(mf.key, 'featured'); assert.equal(mf.type, 'json');
+    assert.deepEqual(JSON.parse(mf.value), { best_sellers: ['a-one', 'store-only'], new_arrivals: ['b-one'] });
+    // a SKU that exists nowhere stops the write
+    await assert.rejects(writeFeatured({ best_sellers: ['NOPE-9'], new_arrivals: [] }, {}, false), /not in the store: NOPE-9/);
+    // dry run: a SKU that the Excel will create is fine
+    const d2 = await writeFeatured({ best_sellers: ['NEW-SKU'], new_arrivals: [] }, { knownSkus: ['NEW-SKU'] }, true);
+    assert.equal(d2.action, 'write');
+  } finally { globalThis.fetch = orig; }
+});
+
 await t('writeMenu: dry run writes nothing, live run sets shop metafield sienna.menu', async () => {
   calls.length = 0;
   const d = await writeMenu(real.categories, true);

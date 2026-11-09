@@ -1,3 +1,7 @@
+{%- comment -%}Main-category pages list sub-category cards instead of products (sections/sienna-category-hub.liquid).{%- endcomment -%}
+{%- capture hub_subs -%}{%- render 'sienna-sub-data', handle: collection.handle -%}{%- endcapture -%}
+{%- assign hub_subs = hub_subs | strip -%}
+{%- if hub_subs == blank -%}
 {{ 'template-collection.css' | asset_url | stylesheet_tag }}
 {{ 'component-card.css' | asset_url | stylesheet_tag }}
 {{ 'component-price.css' | asset_url | stylesheet_tag }}
@@ -212,6 +216,7 @@
     {%- endif -%}
   </div>
 </collection-component>
+{%- endif -%}
 
 {% schema %}
 {

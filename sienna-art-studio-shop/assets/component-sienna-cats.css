@@ -1,0 +1,266 @@
+/* ==========================================================================
+   Shop by category (sections/sienna-categories.liquid)
+   Big photo cards, each with up to five square sub-category photos underneath.
+   - 1200px and up: four cards in a row, 2nd and 4th stepped down
+   - under 1200px: not used, the original tiles (.cat-legacy) are shown instead
+   Hovering (or focusing) a square swaps the big card's photo and title to that sub-category.
+   ========================================================================== */
+/* wide screens only: below 1200px the original category tiles (.cat-legacy) are shown */
+.catrow {
+  display: none;
+  padding: 3.6rem 0 4rem;
+}
+.catrow .page-width {
+  max-width: 152rem;
+  padding-inline: 2rem;
+}
+.catrow__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3.2rem;
+}
+.catcard {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/* ---- the card ---- */
+.catcard__main {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--s-r);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--s-sand);
+  color: #faf6ee;
+  text-decoration: none;
+  box-shadow: 0 0 0 1px var(--s-line);
+}
+.catcard__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.catcard__img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(var(--cat-zoom, 1.05));
+  transform-origin: var(--cat-origin, 50% 40%);
+  transition: transform 1s var(--s-ease);
+}
+.catcard__main:hover .catcard__img img,
+.catcard__main:focus-visible .catcard__img img {
+  transform: scale(calc(var(--cat-zoom, 1.05) + 0.07));
+}
+.catcard__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to top, rgba(18, 14, 16, 0.86) 0%, rgba(18, 14, 16, 0.5) 26%, rgba(18, 14, 16, 0) 52%);
+}
+.catcard__meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.8rem 1.8rem 1.6rem;
+}
+.catcard__name {
+  font: 380 clamp(2.2rem, 5.6vw, 2.8rem) / 1.1 var(--font-heading-family);
+  letter-spacing: -0.01em;
+  color: #faf6ee;
+}
+.catcard__note {
+  font: 400 1.35rem / 1.4 var(--font-body-family);
+  color: rgba(250, 246, 238, 0.84);
+}
+/* ---- the squares under the card ---- */
+.catcard__subs {
+  position: relative;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.catcard__subs:empty {
+  display: none;
+}
+.catsub {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.catsub__link {
+  display: block;
+  text-decoration: none;
+  color: var(--s-ink);
+}
+.catsub__pic {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--s-r);
+  overflow: hidden;
+  background: var(--s-card);
+  box-shadow: 0 0 0 1px var(--s-line);
+  transition: box-shadow 0.3s var(--s-ease), transform 0.4s var(--s-ease);
+}
+.catsub__pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--s-ease);
+}
+.catsub__link:hover .catsub__pic,
+.catsub__link:focus-visible .catsub__pic {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--s-gold), 0 0.8rem 1.8rem rgba(0, 0, 0, 0.18);
+}
+.catsub__link:hover .catsub__pic img,
+.catsub__link:focus-visible .catsub__pic img {
+  transform: scale(1.1);
+}
+.catcard__main:focus-visible,
+.catsub__link:focus-visible {
+  outline: 2px solid var(--s-gold);
+  outline-offset: 3px;
+}
+/* label on the big card while a sub-category is previewed: says where a click goes */
+.catcard__cta {
+  display: none;
+  align-items: center;
+  gap: 0.8rem;
+  justify-self: start;
+  margin-top: 0.8rem;
+  padding: 0.9rem 1.5rem;
+  border-radius: 999px;
+  color: #1e1a1c;
+  background: var(--s-gold);
+  font: 600 1.3rem / 1 var(--font-body-family);
+}
+.catcard.is-previewing .catcard__cta {
+  display: inline-flex;
+}
+.catcard__main {
+  cursor: pointer;
+}
+
+/* arrow on a square while it is hovered: this square opens that sub-category */
+.catsub__pic {
+  position: relative;
+}
+.catsub__go {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #faf6ee;
+  background: rgba(18, 14, 16, 0.5);
+  opacity: 0;
+  transition: opacity 0.25s var(--s-ease);
+}
+.catsub__go svg {
+  transform: translateX(-4px);
+  transition: transform 0.35s var(--s-ease);
+}
+.catsub__link:hover .catsub__go,
+.catsub__link:focus-visible .catsub__go {
+  opacity: 1;
+}
+.catsub__link:hover .catsub__go svg,
+.catsub__link:focus-visible .catsub__go svg {
+  transform: none;
+}
+
+/* hovering a square previews that sub-category on the big card: its photo and its name */
+.catcard__swap {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.45s var(--s-ease);
+}
+.catcard__swap.is-on {
+  opacity: 1;
+}
+.catcard__swap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+}
+.catcard__meta.is-pop {
+  animation: catcard-pop 0.4s var(--s-ease);
+}
+@keyframes catcard-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* four cards in a row, 2nd and 4th stepped down */
+@media screen and (min-width: 1200px) {
+  .cat-legacy {
+    display: none;
+  }
+  .catrow {
+    display: block;
+    padding: 4.8rem 0 5.2rem;
+  }
+  .catrow .page-width {
+    padding-inline: 4rem;
+  }
+  .catrow__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+    align-items: start;
+  }
+  .catcard:nth-child(even) {
+    margin-top: 4rem;
+  }
+  .catcard__main {
+    aspect-ratio: 5 / 6;
+  }
+  .catcard__name {
+    font-size: clamp(2.2rem, 1.75vw, 2.8rem);
+  }
+  .catcard__note {
+    font-size: 1.3rem;
+  }
+  .catcard__meta {
+    padding: 2.2rem 2rem 2rem;
+  }
+  .catcard__subs {
+    gap: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catcard__img img,
+  .catsub__pic,
+  .catsub__pic img,
+  .catcard__swap {
+    transition-duration: 0.01ms !important;
+  }
+  .catcard__meta.is-pop {
+    animation: none;
+  }
+}

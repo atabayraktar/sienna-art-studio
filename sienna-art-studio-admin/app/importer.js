@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { parseWorkbook, sheetToObjects } from '@/lib/parse-workbook';
+import { parseWorkbook, sheetToObjects, FEATURED_TAB } from '@/lib/parse-workbook';
 
 async function post(url, body) {
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -35,9 +35,9 @@ export default function Importer() {
       const ExcelJS = (await import('exceljs')).default;
       const wb = new ExcelJS.Workbook();
       await wb.xlsx.load(await file.arrayBuffer());
-      const c = wb.getWorksheet('Categories'), p = wb.getWorksheet('Products');
+      const c = wb.getWorksheet('Categories'), p = wb.getWorksheet('Products'), f = wb.getWorksheet(FEATURED_TAB);
       if (!c || !p) throw new Error('This is not the import file: the tabs "Categories" and "Products" are missing.');
-      setPlan(parseWorkbook({ categoriesSheet: sheetToObjects(c), productsSheet: sheetToObjects(p) }));
+      setPlan(parseWorkbook({ categoriesSheet: sheetToObjects(c), productsSheet: sheetToObjects(p), featuredSheet: f ? sheetToObjects(f) : undefined }));
     } catch (e) {
       setParseError(e.message);
     }
@@ -80,17 +80,31 @@ export default function Importer() {
         addLog(`Site menu (${r.groups} main categories): ${r.action}`, 'ok', `The site menu ${dryRun ? 'will be updated' : 'was updated'}`); stats.ok++;
       } catch (e) { addLog(`Site menu: FAILED ${e.message}`, 'bad', `The site menu could not be updated. ${e.message}`); stats.failed++; }
 
+      const handles = {}; // sku -> product handle, for the home page lists
+      const draftSkus = [];
       for (const p of products) {
         try {
           const collectionIds = [p.subcategory, p.category].filter(Boolean).map(n => ids[n.toLowerCase()]).filter(x => x && x.id && !x.smart).map(x => x.id);
           if (dryRun === false && collectionIds.length === 0) addLog(`! ${p.code}: no collection could be linked`, 'warn');
           const r = await post('/api/import/product', { product: p, collectionIds, locationId: prep.locationId, publicationId: prep.publicationId, dryRun });
+          for (const v of p.variants) { if (r.handle) handles[v.sku] = r.handle; if (p.status === 'draft') draftSkus.push(v.sku); }
           const isNew = /^creat/.test(r.action);
           if (isNew) stats.added++; else stats.updated++;
           addLog(`${p.code} ${p.name}: ${r.action}${r.variants > 1 ? ` (${r.variants} variants)` : ''}${r.newImages ? `, ${r.newImages} new image(s)` : ''}`, 'ok',
             `${p.name} ${dryRun ? 'will be' : 'was'} ${isNew ? 'added' : 'updated'}`); stats.ok++;
         } catch (e) { addLog(`${p.code} ${p.name}: FAILED ${e.message}`, 'bad', `${p.name} could not be saved. ${e.message}`); stats.failed++; }
         tick();
+      }
+
+      // Home page lists (Best sellers / New arrivals). Only when the Excel has that tab and the whole file is imported.
+      if (plan.featured && !wanted.length) {
+        try {
+          const knownSkus = plan.products.flatMap(p => p.variants.map(v => v.sku));
+          const r = await post('/api/import/featured', { featured: plan.featured, handles, draftSkus, knownSkus, dryRun });
+          addLog(`Home page lists: ${r.bestSellers} best sellers, ${r.newArrivals} new arrivals: ${r.action}`, 'ok',
+            `The home page ${dryRun ? 'will show' : 'now shows'} ${r.bestSellers} best seller(s) and ${r.newArrivals} new arrival(s)`); stats.ok++;
+          if (r.hidden && r.hidden.length) addLog(`! Hidden (draft) products in the home page lists: ${r.hidden.join(', ')}`, 'warn', `These products are hidden (draft), so they will not show on the home page: ${r.hidden.join(', ')}`);
+        } catch (e) { addLog(`Home page lists: FAILED ${e.message}`, 'bad', `The home page lists could not be updated. ${e.message}`); stats.failed++; }
       }
     } catch (e) {
       addLog('STOPPED: ' + e.message, 'bad', 'Stopped. ' + e.message); stats.failed++;

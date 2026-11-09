@@ -12,14 +12,13 @@
     "hero": {
       "type": "sienna-hero",
       "settings": {
-        "heading": "Gifts That Make|Every Moment|Shine.",
+        "heading": "Light Up|Their Space.|Make It Personal.",
         "glow_last_word": true,
-        "subheading": "Discover unique gifts, beautiful lighting, personalized creations, and little surprises you'll love.",
+        "subheading": "Colorful lighting, custom art, and thoughtful gifts for every occasion.",
         "button_label": "Shop now",
-        "button_link": "shopify://collections/all",
         "button_label_2": "Personalized gifts",
         "button_link_2": "shopify://collections/personalized-gifts",
-        "product": "sapphire-bloom-mosaic-lamp",
+        "product": "golden-hair",
         "product_back": "emerald-mosaic-star-lamp",
         "image_alt": "A lit mosaic lamp throwing colored patterns across a wall",
         "tag_title": "New arrivals",
@@ -239,6 +238,7 @@
         "p5"
       ],
       "settings": {
+        "feed": "best_sellers",
         "title": "Best sellers",
         "link_label": "Shop all",
         "link_url": "shopify://collections/all"
@@ -286,6 +286,7 @@
         "p5"
       ],
       "settings": {
+        "feed": "new_arrivals",
         "title": "New arrivals",
         "link_label": "Shop all",
         "link_url": "shopify://collections/all"
@@ -294,9 +295,9 @@
   },
   "order": [
     "hero",
+    "best_sellers",
     "categories",
     "gifts",
-    "best_sellers",
     "nightlights",
     "new_arrivals",
     "promises",

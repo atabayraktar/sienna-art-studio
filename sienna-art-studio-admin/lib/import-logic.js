@@ -114,3 +114,38 @@ export async function writeMenu(categories, dryRun) {
   if (e.length) throw new Error(e.join('; '));
   return { action: 'written', groups: menu.length };
 }
+
+// Which products the home page shows under "Best sellers" and "New arrivals" (max 5 each).
+// Writes the product HANDLES to the shop metafield sienna.featured (the theme reads it).
+// handles = sku -> handle of the products this same import just saved; any other SKU is looked up in the store.
+export async function writeFeatured(featured, { handles = {}, draftSkus = [], knownSkus = [] } = {}, dryRun) {
+  const known = new Set(knownSkus.map(x => x.toLowerCase()));
+  const drafts = new Set(draftSkus.map(x => x.toLowerCase()));
+  const value = { best_sellers: [], new_arrivals: [] };
+  const missing = [];
+  const hidden = [];
+  for (const key of Object.keys(value)) {
+    for (const sku of featured[key] || []) {
+      let handle = handles[sku] || null;
+      let hide = drafts.has(sku.toLowerCase());
+      if (!handle) {
+        const d = await gql(`query($q: String!) { productVariants(first: 5, query: $q) { nodes { sku product { handle status } } } }`, { q: `sku:"${sku.replace(/"/g, '')}"` });
+        const hit = d.productVariants.nodes.find(n => (n.sku || '').toLowerCase() === sku.toLowerCase());
+        if (hit) { handle = hit.product.handle; hide = hit.product.status !== 'ACTIVE'; }
+      }
+      if (!handle) { if (!(dryRun && known.has(sku.toLowerCase()))) missing.push(sku); continue; }
+      if (hide) hidden.push(sku);
+      value[key].push(handle);
+    }
+  }
+  if (missing.length) throw new Error(`These SKUs are not in the store: ${missing.join(', ')}. Check the spelling, or add the product to the Products tab.`);
+  const counts = { bestSellers: (featured.best_sellers || []).length, newArrivals: (featured.new_arrivals || []).length };
+  if (dryRun) return { action: 'write', ...counts, hidden };
+  const d = await gql(`{ shop { id } }`);
+  const r = await gql(`mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { field message } } }`, {
+    m: [{ ownerId: d.shop.id, namespace: 'sienna', key: 'featured', type: 'json', value: JSON.stringify(value) }],
+  });
+  const e = userErrors(r.metafieldsSet.userErrors);
+  if (e.length) throw new Error(e.join('; '));
+  return { action: 'written', ...counts, hidden };
+}

@@ -1,0 +1,53 @@
+{%- comment -%}
+  Main-category page (Home & Lighting, Personalized Gifts, Toys & Kids, Home Decor): products are not listed here,
+  the visitor picks a sub-category card and the products are listed there.
+  Shown only on the four main categories (see snippets/sienna-sub-data.liquid). A sub-category with no
+  products (so no photo) is left out. The normal product grid is hidden on these pages
+  (sections/main-collection-product-grid.liquid).
+{%- endcomment -%}
+{%- capture hub_subs -%}{%- render 'sienna-sub-data', handle: collection.handle -%}{%- endcapture -%}
+{%- assign hub_subs = hub_subs | strip -%}
+
+{%- if hub_subs != blank -%}
+  {{ 'component-sienna-hub.css' | asset_url | stylesheet_tag }}
+  {%- assign subs = hub_subs | split: '^' -%}
+  <section class="hub">
+    <div class="page-width">
+      <p class="hub__lead">{{ section.settings.lead | escape }}</p>
+      <ul class="hub__grid">
+        {%- for s in subs -%}
+          {%- assign sp = s | split: '~' -%}
+          {%- if sp[1] != blank -%}
+            {%- capture hub_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 1000, widths: '320, 480, 640, 800, 1000', sizes: '(min-width: 1200px) 22vw, (min-width: 750px) 30vw, 46vw' -%}{%- endcapture -%}
+            {%- if hub_photo != blank -%}
+              <li class="hubcard">
+                <a class="hubcard__link" href="{{ routes.collections_url }}/{{ sp[1] }}">
+                  <span class="hubcard__img">{{ hub_photo }}</span>
+                  <span class="hubcard__shade" aria-hidden="true"></span>
+                  <span class="hubcard__meta">
+                    <span class="hubcard__name">{{ sp[0] | escape }}</span>
+                    {%- if sp[2] != blank -%}
+                      <span class="hubcard__note">{{ sp[2] | escape }}</span>
+                    {%- endif -%}
+                  </span>
+                  <span class="hubcard__go" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 12L12 2M4.5 2H12v7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                </a>
+              </li>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Sienna category hub",
+  "settings": [
+    { "type": "text", "id": "lead", "label": "Line above the cards", "default": "Pick a collection to see the products." }
+  ]
+}
+{% endschema %}

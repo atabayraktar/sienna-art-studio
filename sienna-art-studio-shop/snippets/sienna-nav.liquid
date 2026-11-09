@@ -125,20 +125,19 @@
               {%- for s in subs -%}
                 {%- assign sp = s | split: '~' -%}
                 {%- assign sc = collections[sp[1]] -%}
-                <li>
-                  <a class="sn-sub" href="{{ routes.collections_url }}/{{ sp[1] }}">
-                    {%- capture sub_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 160, sizes: '48px' -%}{%- endcapture -%}
-                    {%- if sub_photo != blank -%}
+                {%- comment -%}A sub-category with no products (so no photo) is not listed.{%- endcomment -%}
+                {%- capture sub_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 160, sizes: '48px' -%}{%- endcapture -%}
+                {%- if sub_photo != blank -%}
+                  <li>
+                    <a class="sn-sub" href="{{ routes.collections_url }}/{{ sp[1] }}">
                       <span class="sn-sub__thumb">{{ sub_photo }}</span>
-                    {%- else -%}
-                      <span class="sn-sub__thumb sn-sub__thumb--empty" aria-hidden="true"></span>
-                    {%- endif -%}
-                    <span class="sn-sub__text">
-                      <span class="sn-sub__name">{{ sp[0] }}</span>
-                      <span class="sn-sub__desc">{{ sp[2] }}</span>
-                    </span>
-                  </a>
-                </li>
+                      <span class="sn-sub__text">
+                        <span class="sn-sub__name">{{ sp[0] }}</span>
+                        <span class="sn-sub__desc">{{ sp[2] }}</span>
+                      </span>
+                    </a>
+                  </li>
+                {%- endif -%}
               {%- endfor -%}
             </ul>
           </section>
@@ -220,13 +219,15 @@
             <li><a href="{{ routes.collections_url }}/{{ gp[1] }}" class="sm__all">View all</a></li>
             {%- for s in subs -%}
               {%- assign sp = s | split: '~' -%}
-              <li>
-                <a href="{{ routes.collections_url }}/{{ sp[1] }}" class="sm__sub">
-                  {%- capture s_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 160, sizes: '44px' -%}{%- endcapture -%}
-                  <span class="sm__thumb sm__thumb--sm{% if s_photo == blank %} sm__thumb--empty{% endif %}">{{ s_photo }}</span>
-                  <span>{{ sp[0] }}</span>
-                </a>
-              </li>
+              {%- capture s_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 160, sizes: '44px' -%}{%- endcapture -%}
+              {%- if s_photo != blank -%}
+                <li>
+                  <a href="{{ routes.collections_url }}/{{ sp[1] }}" class="sm__sub">
+                    <span class="sm__thumb sm__thumb--sm">{{ s_photo }}</span>
+                    <span>{{ sp[0] }}</span>
+                  </a>
+                </li>
+              {%- endif -%}
             {%- endfor -%}
           </ul>
         </details>

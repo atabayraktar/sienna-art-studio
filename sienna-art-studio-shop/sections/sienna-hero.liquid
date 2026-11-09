@@ -21,11 +21,11 @@
       <h1 class="s-hero__title">
         {%- for line in head_lines -%}
           <span class="s-hero__line">
-            {%- if forloop.last and section.settings.glow_last_word -%}
+            {%- if forloop.first and section.settings.glow_last_word -%}
               {%- assign words = line | split: ' ' -%}
-              {%- assign last = words | last -%}
-              {%- assign lead = line | remove: last -%}
-              {{- lead -}}<span class="s-hero__glow">{{ last }}</span>
+              {%- assign first = words | first -%}
+              {%- assign rest = line | remove_first: first -%}
+              <span class="s-hero__glow">{{ first }}</span>{{- rest -}}
             {%- else -%}
               {{- line -}}
             {%- endif -%}
@@ -35,7 +35,7 @@
       <p class="s-hero__sub">{{ section.settings.subheading }}</p>
       <div class="s-hero__cta">
         {%- if section.settings.button_label != blank -%}
-          <a class="s-btn s-btn--solid" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">
+          <a class="s-btn s-btn--solid" href="{{ section.settings.button_link | default: '#s-best-sellers' }}" data-scroll-best>
             {{- section.settings.button_label -}}
             <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 5h14M10 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
           </a>
@@ -90,11 +90,11 @@
 {
   "name": "Sienna hero",
   "settings": [
-    { "type": "text", "id": "heading", "label": "Heading (use | for a line break)", "default": "Gifts That Make|Every Moment Shine." },
-    { "type": "checkbox", "id": "glow_last_word", "label": "Glow on the last word when the lights are on", "default": true },
-    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Discover unique gifts, beautiful lighting, personalized creations, and little surprises you'll love." },
+    { "type": "text", "id": "heading", "label": "Heading (use | for a line break)", "default": "Light Up|Their Space.|Make It Personal." },
+    { "type": "checkbox", "id": "glow_last_word", "label": "Glow on the first word when the lights are on", "default": true },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Colorful lighting, custom art, and thoughtful gifts for every occasion." },
     { "type": "text", "id": "button_label", "label": "Primary button label", "default": "Shop now" },
-    { "type": "url", "id": "button_link", "label": "Primary button link" },
+    { "type": "url", "id": "button_link", "label": "Primary button link (empty = scroll to Best sellers)" },
     { "type": "text", "id": "button_label_2", "label": "Secondary button label", "default": "Personalized gifts" },
     { "type": "url", "id": "button_link_2", "label": "Secondary button link" },
     { "type": "header", "content": "Main image" },
@@ -112,3 +112,19 @@
   "presets": [{ "name": "Sienna hero" }]
 }
 {% endschema %}
+
+<script>
+  document.querySelectorAll('[data-scroll-best]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var t = document.getElementById('s-best-sellers');
+      if (!t) return;
+      e.preventDefault();
+      t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  #s-best-sellers { scroll-margin-top: 90px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>

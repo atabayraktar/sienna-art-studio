@@ -5,6 +5,12 @@
 export const DASH = '-';
 const GALLERY_COLS = 5;
 
+// Optional tab: which products the home page shows under "Best sellers" and "New arrivals" (max 5 each, by SKU).
+export const FEATURED_TAB = 'Best Sellers & New Arrivals';
+export const FEATURED_MAX = 5;
+const FEATURED_SECTIONS = { 'best sellers': 'best_sellers', 'new arrivals': 'new_arrivals' };
+const FEATURED_LABEL = { best_sellers: 'Best sellers', new_arrivals: 'New arrivals' };
+
 export function cellText(v) {
   if (v === null || v === undefined) return '';
   if (typeof v === 'object') {
@@ -39,7 +45,7 @@ const blank = s => s === '' || s === DASH;
 const isUrl = s => /^https:\/\/\S+$/.test(s);
 const num = s => (s !== '' && !Number.isNaN(Number(s)) ? Number(s) : NaN);
 
-export function parseWorkbook({ categoriesSheet, productsSheet }) {
+export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet }) {
   const errors = [];
   const warnings = [];
   const err = (where, msg) => errors.push({ where, msg });
@@ -117,6 +123,7 @@ export function parseWorkbook({ categoriesSheet, productsSheet }) {
       if (!['Yes', 'No', ''].includes(r['Custom Product'])) err(where, 'Custom Product must be Yes or No');
       const cat = catByName.get((p.category || '').toLowerCase());
       if (!cat || cat.type !== 'Category') err(where, `Category "${p.category}" is not a Category in the Categories tab`);
+      if (!p.subcategory) err(where, `Subcategory is empty. Products are listed in a sub-category, never directly in the main category "${p.category}": pick a Subcategory`);
       if (p.subcategory) {
         const sub = catByName.get(p.subcategory.toLowerCase());
         if (!sub || sub.type !== 'Subcategory') err(where, `Subcategory "${p.subcategory}" is not a Subcategory in the Categories tab`);
@@ -185,5 +192,28 @@ export function parseWorkbook({ categoriesSheet, productsSheet }) {
     if (!p.gallery.length && !p.variants.some(v => v.image)) warnings.push({ where: `Products row ${p.row}`, msg: `${p.code} has no images` });
   }
   if (!products.length) err('Products', 'No products found');
-  return { categories, products, errors, warnings };
+
+  // ---------- home page sections (optional tab; no tab = the home page lists stay as they are)
+  let featured = null;
+  if (featuredSheet) {
+    featured = { best_sellers: [], new_arrivals: [] };
+    const known = new Set(products.flatMap(p => [p.code, ...p.variants.map(v => v.sku)]).map(x => String(x).toLowerCase()));
+    for (const h of ['Section', 'SKU']) if (!featuredSheet.headers.includes(h)) err(FEATURED_TAB, `Missing column "${h}". Column titles must not be renamed.`);
+    if (featuredSheet.headers.includes('Section') && featuredSheet.headers.includes('SKU')) {
+      for (const r of featuredSheet.rows) {
+        const where = `${FEATURED_TAB} row ${r._row}`;
+        const key = FEATURED_SECTIONS[(r['Section'] || '').toLowerCase()];
+        if (!key) { err(where, `Section must be "Best sellers" or "New arrivals" (got "${r['Section']}")`); continue; }
+        const sku = r['SKU'];
+        if (blank(sku)) { err(where, 'SKU is empty'); continue; }
+        if (featured[key].some(x => x.toLowerCase() === sku.toLowerCase())) { err(where, `${sku} is listed twice in ${FEATURED_LABEL[key]}`); continue; }
+        featured[key].push(sku);
+        if (!known.has(sku.toLowerCase())) warnings.push({ where, msg: `${sku} is not in the Products tab: it must already exist in the store (checked at upload)` });
+      }
+      for (const key of Object.keys(featured)) {
+        if (featured[key].length > FEATURED_MAX) err(FEATURED_TAB, `${FEATURED_LABEL[key]} can show at most ${FEATURED_MAX} products (found ${featured[key].length})`);
+      }
+    }
+  }
+  return { categories, products, featured, errors, warnings };
 }

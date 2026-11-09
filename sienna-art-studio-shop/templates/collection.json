@@ -17,6 +17,12 @@
         "color_scheme": "scheme-1"
       }
     },
+    "hub": {
+      "type": "sienna-category-hub",
+      "settings": {
+        "lead": "Pick a collection to see the products."
+      }
+    },
     "product-grid": {
       "type": "main-collection-product-grid",
       "settings": {
@@ -40,6 +46,7 @@
   },
   "order": [
     "banner",
+    "hub",
     "product-grid"
   ]
 }

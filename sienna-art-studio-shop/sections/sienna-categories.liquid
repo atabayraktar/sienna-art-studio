@@ -1,3 +1,40 @@
+{{ 'component-sienna-cats.css' | asset_url | stylesheet_tag }}
+
+{%- comment -%}
+  Shop by category. Four big photo cards. Under each card: up to five square photos, one per sub-category.
+  Sub-categories come from the same data as the main menu (shop metafield sienna.menu, written by the admin
+  panel on every import), matched to the card by title, then by position. A sub-category with no photo
+  is left out (see snippets/sienna-photo.liquid).
+{%- endcomment -%}
+{%- liquid
+  assign menu = shop.metafields.sienna.menu.value
+  if menu != blank
+    assign g_str = ''
+    assign s_str = ''
+    for mt in menu
+      assign g_str = g_str | append: mt.name | append: '~' | append: mt.handle | append: '||'
+      for ms in mt.children
+        assign s_str = s_str | append: ms.name | append: '~' | append: ms.handle | append: '~' | append: ms.tagline | append: '^'
+      endfor
+      assign s_str = s_str | append: '||'
+    endfor
+    assign groups = g_str | split: '||'
+    assign subs_by_group = s_str | split: '||'
+  else
+    assign groups = 'Home & Lighting~all-lamps||Personalized Gifts~personalized-gifts||Toys & Kids~toys-kids||Home Decor~home-decor' | split: '||'
+    assign subs_0 = 'Mosaic & Stained Glass~mosaic-stained-glass~Colorful glass lamps^Modern Lamps~modern~Clean, sculpted lines^Rechargeable Lamps~rechargeable~Cordless, carry anywhere^Crystal Glow Lamps~crystal-glow-lamps~Etched crystal light^Animal Stained Glass Lamps~animal-stained-glass-lamps~Figures in colored glass'
+    assign subs_1 = 'Custom Art~custom-art-personalized-gifts~Portraits from your photos^Personalized Gifts~personalized-gifts-all~Made with names and dates^Photo to Cartoon Portraits~photo-to-cartoon-portraits~Your photo, illustrated^Custom Products~custom-products~Made to your request'
+    assign subs_2 = 'Squishy Toys~squishy-toys~Soft, slow-rising and silly^Mini Figures~mini-figures~Small collectibles^Kids’ Night Lights~kids-night-lights~Soft glow for bedtime'
+    assign subs_3 = 'Wall Art~wall-art~Prints and framed pieces^Decorative Accents~decorative-accents~Shelf and table pieces^Seasonal Decor~seasonal-decor~For every holiday^Gift Ideas~gift-ideas~Ready to wrap'
+    assign subs_by_group = subs_0 | append: '||' | append: subs_1 | append: '||' | append: subs_2 | append: '||' | append: subs_3 | split: '||'
+  endif
+-%}
+
+{%- comment -%}
+  Under 1200px (phones, tablets, foldables, small laptops) the original category tiles stay as they were.
+  The new tiles-with-sub-category-photos layout below is for wide screens only.
+{%- endcomment -%}
+<div class="cat-legacy">
 <section class="s-tiles">
   <div class="page-width">
     {%- if section.settings.title != blank or section.settings.link_label != blank -%}
@@ -23,6 +60,18 @@
             assign img = col.featured_image
           endif
           assign ttl = block.settings.title | default: col.title
+          assign hub_url = ''
+          assign hub_key = ttl | downcase
+          for g in groups
+            assign hg = g | split: '~'
+            assign hg_key = hg[0] | downcase
+            if hg_key == hub_key
+              assign hub_url = routes.collections_url | append: '/' | append: hg[1]
+            endif
+          endfor
+          if hub_url == blank
+            assign hub_url = col.url | default: routes.collections_url
+          endif
         -%}
         {%- liquid
           assign zoom = block.settings.zoom | default: 105 | divided_by: 100.0
@@ -34,8 +83,8 @@
               assign origin = '100% 100%'
           endcase
         -%}
-        <li class="s-tile" style="--tile-zoom: {{ zoom }}; --tile-origin: {{ origin }}" {{ block.shopify_attributes }}>
-          <a class="s-tile__link" href="{{ col.url | default: routes.collections_url }}">
+        <li class="s-tile" style="--tile-zoom: {{ zoom }}; --tile-origin: {{ origin }}">
+          <a class="s-tile__link" href="{{ hub_url }}">
             {%- if img != blank -%}
               <span class="s-tile__img">
                 {{
@@ -65,6 +114,210 @@
     </ul>
   </div>
 </section>
+</div>
+
+<section class="catrow">
+  <div class="page-width">
+    {%- if section.settings.title != blank or section.settings.link_label != blank -%}
+      <header class="s-head">
+        {%- if section.settings.title != blank -%}
+          <h2 class="s-head__title">{{ section.settings.title }}</h2>
+        {%- endif -%}
+        {%- if section.settings.link_label != blank -%}
+          <a class="s-head__link" href="{{ section.settings.link_url | default: routes.collections_url }}">{{ section.settings.link_label }}</a>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <ul class="catrow__list">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign col = block.settings.collection
+          assign img = block.settings.image
+          assign img_from_col = false
+          if img == blank
+            assign img = block.settings.product.featured_image
+          endif
+          if img == blank
+            assign img = col.featured_image
+            assign img_from_col = true
+          endif
+          assign ttl = block.settings.title | default: col.title
+          assign hub_url = ''
+          assign hub_key = ttl | downcase
+          for g in groups
+            assign hg = g | split: '~'
+            assign hg_key = hg[0] | downcase
+            if hg_key == hub_key
+              assign hub_url = routes.collections_url | append: '/' | append: hg[1]
+            endif
+          endfor
+          if hub_url == blank
+            assign hub_url = col.url | default: routes.collections_url
+          endif
+          assign ttl_key = ttl | downcase
+
+          assign subs_raw = ''
+          for g in groups
+            assign gp = g | split: '~'
+            assign gp_key = gp[0] | downcase
+            if gp_key == ttl_key
+              assign subs_raw = subs_by_group[forloop.index0]
+            endif
+          endfor
+          if subs_raw == blank
+            assign subs_raw = subs_by_group[forloop.index0]
+          endif
+          assign subs = subs_raw | split: '^'
+
+          assign zoom = block.settings.zoom | default: 105 | divided_by: 100.0
+          assign origin = '50% 40%'
+          case block.settings.focus
+            when 'bottom-left'
+              assign origin = '0% 100%'
+            when 'bottom-right'
+              assign origin = '100% 100%'
+          endcase
+          assign shop_all = hub_url
+          assign shown = 0
+        -%}
+        <li class="catcard" style="--cat-zoom: {{ zoom }}; --cat-origin: {{ origin }}" {{ block.shopify_attributes }}>
+          <a class="catcard__main" href="{{ shop_all }}">
+            {%- if img != blank -%}
+              <span class="catcard__img">
+                {{
+                  img
+                  | image_url: width: 1000
+                  | image_tag:
+                    widths: '400, 600, 800, 1000',
+                    sizes: '(min-width: 1200px) 25vw, (min-width: 640px) 50vw, 100vw',
+                    loading: 'lazy',
+                    alt: ''
+                }}
+              </span>
+            {%- endif -%}
+            <span class="catcard__shade" aria-hidden="true"></span>
+            <span class="catcard__meta">
+              <span class="catcard__name">{{ ttl | escape }}</span>
+              {%- if block.settings.caption != blank -%}
+                <span class="catcard__note">{{ block.settings.caption | escape }}</span>
+              {%- endif -%}
+              <span class="catcard__cta" aria-hidden="true">
+                Shop this collection
+                <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7h9M7.5 3L11.5 7l-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </span>
+          </a>
+
+          <ul class="catcard__subs" aria-label="{{ ttl | escape }}">
+            {%- for s in subs -%}
+              {%- assign sp = s | split: '~' -%}
+              {%- comment -%}When the card photo is its own collection's photo, that collection as a sub-category would repeat it, so it is skipped.{%- endcomment -%}
+              {%- assign repeats_card = false -%}
+              {%- if img_from_col and sp[1] == col.handle -%}
+                {%- assign repeats_card = true -%}
+              {%- endif -%}
+              {%- if shown < 5 and repeats_card == false -%}
+                {%- capture sub_photo -%}{%- render 'sienna-photo', handle: sp[1], width: 900, widths: '160, 320, 480, 640, 900', sizes: '(min-width: 1200px) 7vw, 18vw' -%}{%- endcapture -%}
+                {%- if sub_photo != blank -%}
+                  {%- assign shown = shown | plus: 1 -%}
+                  <li class="catsub">
+                    <a
+                      class="catsub__link"
+                      href="{{ routes.collections_url }}/{{ sp[1] }}"
+                      aria-label="{{ sp[0] | escape }}"
+                      data-name="{{ sp[0] | escape }}"
+                      data-note="{{ sp[2] | escape }}"
+                    >
+                      <span class="catsub__pic">
+                        {{ sub_photo }}
+                        <span class="catsub__go" aria-hidden="true">
+                          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8h9.5M8.5 4L12.5 8l-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+
+  <script>
+    (function () {
+      var root = document.currentScript.closest('.catrow');
+      if (!root || root.dataset.ready) return;
+      root.dataset.ready = '1';
+
+      Array.prototype.forEach.call(root.querySelectorAll('.catcard'), function (card) {
+        var main = card.querySelector('.catcard__main');
+        var base = card.querySelector('.catcard__img img');
+        var nameEl = card.querySelector('.catcard__name');
+        var noteEl = card.querySelector('.catcard__note');
+        var list = card.querySelector('.catcard__subs');
+        if (!main || !nameEl || !list) return;
+
+        var layer = document.createElement('span');
+        layer.className = 'catcard__swap';
+        layer.setAttribute('aria-hidden', 'true');
+        var swapImg = document.createElement('img');
+        swapImg.alt = '';
+        layer.appendChild(swapImg);
+        var anchor = card.querySelector('.catcard__shade');
+        main.insertBefore(layer, anchor);
+
+        var origName = nameEl.textContent;
+        var origNote = noteEl ? noteEl.textContent : '';
+        var origHref = main.getAttribute('href');
+        var meta = card.querySelector('.catcard__meta');
+
+        function pop() {
+          if (!meta) return;
+          meta.classList.remove('is-pop');
+          void meta.offsetWidth;
+          meta.classList.add('is-pop');
+        }
+
+        function show(link) {
+          var img = link.querySelector('img');
+          if (!img) return;
+          swapImg.sizes = (base && base.sizes) || '25vw';
+          if (img.srcset) swapImg.srcset = img.srcset;
+          swapImg.src = img.currentSrc || img.src;
+          layer.classList.add('is-on');
+          card.classList.add('is-previewing');
+          nameEl.textContent = link.dataset.name;
+          if (noteEl) noteEl.textContent = link.dataset.note || '';
+          // while a sub-category is shown, the big card leads to it as well
+          main.setAttribute('href', link.getAttribute('href'));
+          pop();
+        }
+        function hide() {
+          if (!layer.classList.contains('is-on')) return;
+          layer.classList.remove('is-on');
+          card.classList.remove('is-previewing');
+          nameEl.textContent = origName;
+          if (noteEl) noteEl.textContent = origNote;
+          main.setAttribute('href', origHref);
+          pop();
+        }
+
+        Array.prototype.forEach.call(list.querySelectorAll('.catsub__link'), function (link) {
+          link.addEventListener('mouseenter', function () { show(link); });
+          link.addEventListener('focus', function () { show(link); });
+        });
+        // the preview stays while the pointer moves from a square up onto the big card
+        card.addEventListener('mouseleave', hide);
+        card.addEventListener('focusout', function (e) {
+          if (!card.contains(e.relatedTarget)) hide();
+        });
+      });
+    })();
+  </script>
+</section>
 
 {% schema %}
 {
@@ -81,7 +334,7 @@
       "name": "Category",
       "settings": [
         { "type": "collection", "id": "collection", "label": "Collection" },
-        { "type": "text", "id": "title", "label": "Title (optional)" },
+        { "type": "text", "id": "title", "label": "Title (optional)", "info": "Sub-categories are matched by this title to the main menu." },
         { "type": "text", "id": "caption", "label": "Caption" },
         { "type": "image_picker", "id": "image", "label": "Image (optional, defaults to the collection image)" },
         { "type": "product", "id": "product", "label": "Or use a product's first image" },
@@ -100,7 +353,7 @@
         {
           "type": "select",
           "id": "tint",
-          "label": "Background tint (not used by the tile layout)",
+          "label": "Background tint (not used by this layout)",
           "options": [
             { "value": "blush", "label": "Blush" },
             { "value": "lavender", "label": "Lavender" },
