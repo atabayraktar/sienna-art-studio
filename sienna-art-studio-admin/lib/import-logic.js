@@ -121,10 +121,10 @@ export async function writeMenu(categories, dryRun) {
 export async function writeFeatured(featured, { handles = {}, draftSkus = [], knownSkus = [] } = {}, dryRun) {
   const known = new Set(knownSkus.map(x => x.toLowerCase()));
   const drafts = new Set(draftSkus.map(x => x.toLowerCase()));
-  const value = { best_sellers: [], new_arrivals: [] };
+  const value = { best_sellers: [], new_arrivals: [], top_bar: (featured.top_bar || []).slice() }; // top_bar = plain texts of the moving bar (max 3)
   const missing = [];
   const hidden = [];
-  for (const key of Object.keys(value)) {
+  for (const key of ['best_sellers', 'new_arrivals']) {
     for (const sku of featured[key] || []) {
       let handle = handles[sku] || null;
       let hide = drafts.has(sku.toLowerCase());
@@ -139,7 +139,7 @@ export async function writeFeatured(featured, { handles = {}, draftSkus = [], kn
     }
   }
   if (missing.length) throw new Error(`These SKUs are not in the store: ${missing.join(', ')}. Check the spelling, or add the product to the Products tab.`);
-  const counts = { bestSellers: (featured.best_sellers || []).length, newArrivals: (featured.new_arrivals || []).length };
+  const counts = { bestSellers: (featured.best_sellers || []).length, newArrivals: (featured.new_arrivals || []).length, topBar: value.top_bar.length };
   if (dryRun) return { action: 'write', ...counts, hidden };
   const d = await gql(`{ shop { id } }`);
   const r = await gql(`mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { field message } } }`, {

@@ -101,8 +101,8 @@ export default function Importer() {
         try {
           const knownSkus = plan.products.flatMap(p => p.variants.map(v => v.sku));
           const r = await post('/api/import/featured', { featured: plan.featured, handles, draftSkus, knownSkus, dryRun });
-          addLog(`Home page lists: ${r.bestSellers} best sellers, ${r.newArrivals} new arrivals: ${r.action}`, 'ok',
-            `The home page ${dryRun ? 'will show' : 'now shows'} ${r.bestSellers} best seller(s) and ${r.newArrivals} new arrival(s)`); stats.ok++;
+          addLog(`Home page lists: ${r.bestSellers} best sellers, ${r.newArrivals} new arrivals, ${r.topBar} top bar message(s): ${r.action}`, 'ok',
+            `The home page ${dryRun ? 'will show' : 'now shows'} ${r.bestSellers} best seller(s) and ${r.newArrivals} new arrival(s)${r.topBar ? ` and ${r.topBar} message(s) in the top bar` : ''}`); stats.ok++;
           if (r.hidden && r.hidden.length) addLog(`! Hidden (draft) products in the home page lists: ${r.hidden.join(', ')}`, 'warn', `These products are hidden (draft), so they will not show on the home page: ${r.hidden.join(', ')}`);
         } catch (e) { addLog(`Home page lists: FAILED ${e.message}`, 'bad', `The home page lists could not be updated. ${e.message}`); stats.failed++; }
       }

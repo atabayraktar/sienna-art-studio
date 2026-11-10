@@ -1,19 +1,36 @@
-{%- if section.blocks.size > 0 -%}
+{%- comment -%}
+  The messages come from the admin panel's Excel (tab "Best Sellers & New Arrivals", Section "Top bar", max 3;
+  shop metafield sienna.featured.top_bar). With none there, the messages added below in the theme editor are shown.
+{%- endcomment -%}
+{%- liquid
+  assign feed_texts = shop.metafields.sienna.featured.value.top_bar
+  assign use_feed = false
+  if feed_texts.size > 0
+    assign use_feed = true
+  endif
+-%}
+{%- if use_feed or section.blocks.size > 0 -%}
   <div class="s-marquee" role="region" aria-label="Announcements" style="--s-marquee-speed: {{ section.settings.speed }}s">
     <div class="s-marquee__track">
       {%- for half in (1..2) -%}
         <ul class="s-marquee__set"{% if half == 2 %} aria-hidden="true"{% endif %}>
           {%- for rep in (1..8) -%}
-            {%- for block in section.blocks -%}
-              <li class="s-marquee__item" {% if half == 1 and rep == 1 %}{{ block.shopify_attributes }}{% endif %}>
-                {%- if block.settings.link != blank -%}
-                  <a href="{{ block.settings.link }}">{{ block.settings.text }}</a>
-                {%- else -%}
-                  <span>{{ block.settings.text }}</span>
-                {%- endif -%}
-                <svg class="s-marquee__star" width="10" height="10" viewBox="-101 -101 202 202" aria-hidden="true"><path d="M0,-100 L29.3,-70.7 L70.7,-70.7 L70.7,-29.3 L100,0 L70.7,29.3 L70.7,70.7 L29.3,70.7 L0,100 L-29.3,70.7 L-70.7,70.7 L-70.7,29.3 L-100,0 L-70.7,-29.3 L-70.7,-70.7 L-29.3,-70.7Z" fill="currentColor"/></svg>
-              </li>
-            {%- endfor -%}
+            {%- if use_feed -%}
+              {%- for text in feed_texts -%}
+                <li class="s-marquee__item"><span>{{ text }}</span><svg class="s-marquee__star" width="10" height="10" viewBox="-101 -101 202 202" aria-hidden="true"><path d="M0,-100 L29.3,-70.7 L70.7,-70.7 L70.7,-29.3 L100,0 L70.7,29.3 L70.7,70.7 L29.3,70.7 L0,100 L-29.3,70.7 L-70.7,70.7 L-70.7,29.3 L-100,0 L-70.7,-29.3 L-70.7,-70.7 L-29.3,-70.7Z" fill="currentColor"/></svg></li>
+              {%- endfor -%}
+            {%- else -%}
+              {%- for block in section.blocks -%}
+                <li class="s-marquee__item" {% if half == 1 and rep == 1 %}{{ block.shopify_attributes }}{% endif %}>
+                  {%- if block.settings.link != blank -%}
+                    <a href="{{ block.settings.link }}">{{ block.settings.text }}</a>
+                  {%- else -%}
+                    <span>{{ block.settings.text }}</span>
+                  {%- endif -%}
+                  <svg class="s-marquee__star" width="10" height="10" viewBox="-101 -101 202 202" aria-hidden="true"><path d="M0,-100 L29.3,-70.7 L70.7,-70.7 L70.7,-29.3 L100,0 L70.7,29.3 L70.7,70.7 L29.3,70.7 L0,100 L-29.3,70.7 L-70.7,70.7 L-70.7,29.3 L-100,0 L-70.7,-29.3 L-70.7,-70.7 L-29.3,-70.7Z" fill="currentColor"/></svg>
+                </li>
+              {%- endfor -%}
+            {%- endif -%}
           {%- endfor -%}
         </ul>
       {%- endfor -%}

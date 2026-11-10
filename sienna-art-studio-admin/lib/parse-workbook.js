@@ -8,7 +8,9 @@ const GALLERY_COLS = 5;
 // Optional tab: which products the home page shows under "Best sellers" and "New arrivals" (max 5 each, by SKU).
 export const FEATURED_TAB = 'Best Sellers & New Arrivals';
 export const FEATURED_MAX = 5;
-const FEATURED_SECTIONS = { 'best sellers': 'best_sellers', 'new arrivals': 'new_arrivals' };
+export const TOPBAR_MAX = 3; // messages in the moving bar at the top of the site
+export const TOPBAR_TEXT_MAX = 80;
+const FEATURED_SECTIONS = { 'best sellers': 'best_sellers', 'new arrivals': 'new_arrivals', 'top bar': 'top_bar' };
 const FEATURED_LABEL = { best_sellers: 'Best sellers', new_arrivals: 'New arrivals' };
 
 export function cellText(v) {
@@ -196,21 +198,31 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
   // ---------- home page sections (optional tab; no tab = the home page lists stay as they are)
   let featured = null;
   if (featuredSheet) {
-    featured = { best_sellers: [], new_arrivals: [] };
+    featured = { best_sellers: [], new_arrivals: [], top_bar: [] };
     const known = new Set(products.flatMap(p => [p.code, ...p.variants.map(v => v.sku)]).map(x => String(x).toLowerCase()));
     for (const h of ['Section', 'SKU']) if (!featuredSheet.headers.includes(h)) err(FEATURED_TAB, `Missing column "${h}". Column titles must not be renamed.`);
     if (featuredSheet.headers.includes('Section') && featuredSheet.headers.includes('SKU')) {
       for (const r of featuredSheet.rows) {
         const where = `${FEATURED_TAB} row ${r._row}`;
         const key = FEATURED_SECTIONS[(r['Section'] || '').toLowerCase()];
-        if (!key) { err(where, `Section must be "Best sellers" or "New arrivals" (got "${r['Section']}")`); continue; }
+        if (!key) { err(where, `Section must be "Best sellers", "New arrivals" or "Top bar" (got "${r['Section']}")`); continue; }
+        if (key === 'top_bar') {
+          // the moving bar at the top of the site: plain text, no SKU
+          const text = (r['Top Bar Text'] || '').trim();
+          if (blank(text)) { err(where, 'Top bar row has no text. Write the message in the "Top Bar Text" column'); continue; }
+          if (text.length > TOPBAR_TEXT_MAX) { err(where, `Top bar text is too long (${text.length} characters, max ${TOPBAR_TEXT_MAX})`); continue; }
+          if (featured.top_bar.some(x => x.toLowerCase() === text.toLowerCase())) { err(where, `Top bar text "${text}" is listed twice`); continue; }
+          featured.top_bar.push(text);
+          continue;
+        }
         const sku = r['SKU'];
         if (blank(sku)) { err(where, 'SKU is empty'); continue; }
         if (featured[key].some(x => x.toLowerCase() === sku.toLowerCase())) { err(where, `${sku} is listed twice in ${FEATURED_LABEL[key]}`); continue; }
         featured[key].push(sku);
         if (!known.has(sku.toLowerCase())) warnings.push({ where, msg: `${sku} is not in the Products tab: it must already exist in the store (checked at upload)` });
       }
-      for (const key of Object.keys(featured)) {
+      if (featured.top_bar.length > TOPBAR_MAX) err(FEATURED_TAB, `The top bar can show at most ${TOPBAR_MAX} messages (found ${featured.top_bar.length})`);
+      for (const key of ['best_sellers', 'new_arrivals']) {
         if (featured[key].length > FEATURED_MAX) err(FEATURED_TAB, `${FEATURED_LABEL[key]} can show at most ${FEATURED_MAX} products (found ${featured[key].length})`);
       }
     }

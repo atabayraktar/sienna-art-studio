@@ -34,6 +34,9 @@ await t('home page lists tab: 5 best sellers + 5 new arrivals, in row order, no 
   assert.equal(real.featured.best_sellers[0], 'SAS-LAMP-SBL');
   assert.equal(real.warnings.filter(w => w.where.startsWith('Best Sellers')).length, 0);
 });
+await t('top bar: 2 messages from the Excel, in row order', () => {
+  assert.deepEqual(real.featured.top_bar, ['Coming soon', 'Lamps, personalized gifts and little surprises']);
+});
 await t('no home page tab: lists are left alone (featured = null)', async () => {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(fileURLToPath(new URL('../samples/sienna-products-import.xlsx', import.meta.url)));
@@ -49,6 +52,8 @@ const bad = (name, mutate, expect) => t('rejects: ' + name, async () => {
 });
 await bad('unknown category', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Category')).value = 'Nope'; }, 'is not a Category');
 await bad('6 best sellers (max is 5)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(12, 1).value = 'Best sellers'; ws.getCell(12, 2).value = 'SAS-LAMP-DCG'; }, 'at most 5');
+await bad('4 top bar messages (max is 3)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); for (const r of [14, 15]) { ws.getCell(r, 1).value = 'Top bar'; ws.getCell(r, 4).value = 'Msg ' + r; } }, 'at most 3 messages');
+await bad('top bar row without text', wb => { wb.getWorksheet(FEATURED_TAB).getCell(12, 4).value = '-'; }, 'has no text');
 await bad('unknown home page section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 1).value = 'Top picks'; }, 'Section must be');
 await bad('same SKU twice in one section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(3, 2).value = ws.getCell(2, 2).value; }, 'listed twice');
 await bad('home page row without a SKU', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 2).value = '-'; }, 'SKU is empty');
@@ -218,7 +223,7 @@ await t('home page lists: handles of this import are used, others are looked up,
     throw new Error('unexpected ' + query.slice(0, 40));
   };
   try {
-    const f = { best_sellers: ['A-1', 'IN-STORE'], new_arrivals: ['B-1'] };
+    const f = { best_sellers: ['A-1', 'IN-STORE'], new_arrivals: ['B-1'], top_bar: ['Coming soon', 'Free gift wrap'] };
     const dry = await writeFeatured(f, { handles: { 'A-1': 'a-one', 'B-1': 'b-one' } }, true);
     assert.equal(dry.action, 'write'); assert.equal(dry.bestSellers, 2); assert.equal(dry.newArrivals, 1);
     assert.ok(seen.every(c => !c.query.includes('mutation')), 'dry run must not write');
@@ -227,7 +232,8 @@ await t('home page lists: handles of this import are used, others are looked up,
     assert.equal(w.action, 'written'); assert.deepEqual(w.hidden, ['B-1']);
     const mf = seen.find(c => c.query.includes('metafieldsSet')).variables.m[0];
     assert.equal(mf.key, 'featured'); assert.equal(mf.type, 'json');
-    assert.deepEqual(JSON.parse(mf.value), { best_sellers: ['a-one', 'store-only'], new_arrivals: ['b-one'] });
+    assert.deepEqual(JSON.parse(mf.value), { best_sellers: ['a-one', 'store-only'], new_arrivals: ['b-one'], top_bar: ['Coming soon', 'Free gift wrap'] });
+    assert.equal(w.topBar, 2);
     // a SKU that exists nowhere stops the write
     await assert.rejects(writeFeatured({ best_sellers: ['NOPE-9'], new_arrivals: [] }, {}, false), /not in the store: NOPE-9/);
     // dry run: a SKU that the Excel will create is fine
