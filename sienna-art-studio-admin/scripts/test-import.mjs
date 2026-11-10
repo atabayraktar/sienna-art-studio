@@ -3,7 +3,7 @@ import ExcelJS from 'exceljs';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { parseWorkbook, sheetToObjects, FEATURED_TAB } from '../lib/parse-workbook.js';
-import { buildProductSetInput, buildMenu, collectionHandle, toHtml } from '../lib/payload.js';
+import { buildProductSetInput, buildMenu, collectionHandle, toHtml, specsHtml } from '../lib/payload.js';
 
 let pass = 0;
 const t = (name, fn) => Promise.resolve().then(fn).then(() => { pass++; console.log('ok  ', name); }, e => { console.error('FAIL', name, '\n    ', e.message); process.exitCode = 1; });
@@ -54,6 +54,9 @@ await bad('unknown category', wb => { const ws = wb.getWorksheet('Products'); ws
 await bad('6 best sellers (max is 5)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(12, 1).value = 'Best sellers'; ws.getCell(12, 2).value = 'SAS-LAMP-DCG'; }, 'at most 5');
 await bad('4 top bar messages (max is 3)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); for (const r of [14, 15]) { ws.getCell(r, 1).value = 'Top bar'; ws.getCell(r, 4).value = 'Msg ' + r; } }, 'at most 3 messages');
 await bad('top bar row without text', wb => { wb.getWorksheet(FEATURED_TAB).getCell(12, 4).value = '-'; }, 'has no text');
+await bad('only some of Length/Width/Height', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Length (in)')).value = 10; }, 'must ALL be filled');
+await bad('zero weight', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Weight (lb)')).value = 0; }, 'Weight (lb) must be');
+await bad('size is not a number', wb => { const ws = wb.getWorksheet('Products'); for (const h of ['Length (in)', 'Width (in)', 'Height (in)']) ws.getCell(2, col(ws, h)).value = h === 'Width (in)' ? 'big' : 3; }, 'must be numbers above 0');
 await bad('unknown home page section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 1).value = 'Top picks'; }, 'Section must be');
 await bad('same SKU twice in one section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(3, 2).value = ws.getCell(2, 2).value; }, 'listed twice');
 await bad('home page row without a SKU', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 2).value = '-'; }, 'SKU is empty');
@@ -90,10 +93,29 @@ await t('two-color toy: 2 variants, one Color option, variant files, stock + loc
   assert.equal(i.files, undefined); // all its pictures are variant pictures
   assert.deepEqual(i.collections, ['gid://c/1']);
 });
-await t('dimensions go to a product metafield', () => {
-  const p = real.products.find(x => x.dimensions);
+await t('size + weight: columns parsed, weight sent in pounds, block added under the description', async () => {
+  const r = await load(wb => {
+    const ws = wb.getWorksheet('Products');
+    ws.getCell(2, col(ws, 'Length (in)')).value = 12; ws.getCell(2, col(ws, 'Width (in)')).value = 8.5; ws.getCell(2, col(ws, 'Height (in)')).value = 6;
+    ws.getCell(2, col(ws, 'Weight (lb)')).value = 2.5;
+  });
+  assert.deepEqual(r.errors, []);
+  const p = r.products[0];
+  assert.deepEqual(p.variants[0].size, { l: 12, w: 8.5, h: 6 });
+  assert.equal(p.variants[0].weightLb, 2.5);
   const i = buildProductSetInput(p, { locationId: LOC });
-  assert.equal(i.metafields.find(m => m.key === 'dimensions').value, p.dimensions);
+  assert.deepEqual(i.variants[0].inventoryItem.measurement, { weight: { value: 2.5, unit: 'POUNDS' } });
+  assert.ok(i.descriptionHtml.endsWith('<p><strong>Dimensions (L × W × H):</strong> 12 × 8.5 × 6 in<br><strong>Weight:</strong> 2.5 lb</p>'), i.descriptionHtml.slice(-120));
+  // a product with no size/weight gets no block and no measurement
+  const q = buildProductSetInput(real.products[1], { locationId: LOC });
+  assert.ok(!/Dimensions/.test(q.descriptionHtml || ''));
+  assert.equal(q.variants[0].inventoryItem.measurement, undefined);
+});
+await t('size + weight: variants with different sizes get one line each', () => {
+  const p = { description: '', variants: [
+    { sku: 'A', options: [{ value: 'Small' }], size: { l: 5, w: 5, h: 8 }, weightLb: 1 },
+    { sku: 'B', options: [{ value: 'Large' }], size: { l: 9, w: 9, h: 14 }, weightLb: 3.25 } ] };
+  assert.equal(specsHtml(p), '<p><strong>Dimensions (L × W × H) and weight</strong><br>Small: 5 × 5 × 8 in, 1 lb<br>Large: 9 × 9 × 14 in, 3.25 lb</p>');
 });
 await t('marble lamp: two options, both named', () => {
   const i = buildProductSetInput(by('SAS-LED'), { locationId: LOC });

@@ -53,9 +53,9 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
   const err = (where, msg) => errors.push({ where, msg });
 
   const needCat = ['Type', 'Name', 'Parent Category', 'Short Description', 'Image URL', 'Header Image URL (wide)'];
-  const needProd = ['Product Code', 'Product Name', 'Category', 'Subcategory', 'Description', 'Dimensions', 'Tags', 'Status', 'Custom Product',
+  const needProd = ['Product Code', 'Product Name', 'Category', 'Subcategory', 'Description', 'Length (in)', 'Width (in)', 'Height (in)', 'Tags', 'Status', 'Custom Product',
     'Customer Fields', 'Option 1 Name', 'Option 1 Value', 'Option 2 Name', 'Option 2 Value', 'SKU', 'Price (USD)', 'Compare-at Price', 'Stock Qty',
-    'Weight (g)', 'Variant Image URL', ...Array.from({ length: GALLERY_COLS }, (_, i) => 'Image ' + (i + 1))];
+    'Weight (lb)', 'Variant Image URL', ...Array.from({ length: GALLERY_COLS }, (_, i) => 'Image ' + (i + 1))];
   for (const h of needCat) if (!categoriesSheet.headers.includes(h)) err('Categories', `Missing column "${h}". Column titles must not be renamed.`);
   for (const h of needProd) if (!productsSheet.headers.includes(h)) err('Products', `Missing column "${h}". Column titles must not be renamed.`);
   if (errors.length) return { categories: [], products: [], errors, warnings };
@@ -115,7 +115,6 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
       p.category = r['Category'];
       p.subcategory = blank(r['Subcategory']) ? '' : r['Subcategory'];
       p.description = blank(r['Description']) ? '' : r['Description'];
-      p.dimensions = blank(r['Dimensions']) ? '' : r['Dimensions'];
       p.tags = blank(r['Tags']) ? [] : r['Tags'].split(',').map(s => s.trim()).filter(Boolean);
       p.status = (r['Status'] || '').toLowerCase();
       p.custom = (r['Custom Product'] || 'No') === 'Yes';
@@ -165,9 +164,19 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
     v.stock = st === '' ? null : num(st);
     if (v.stock !== null && (!Number.isInteger(v.stock) || v.stock < 0)) err(where, `Stock Qty must be a whole number 0 or more (got "${st}")`);
     if (v.stock === null) warnings.push({ where, msg: 'Stock Qty is empty: stock will not be changed' });
-    const w = r['Weight (g)'];
-    v.weightGrams = blank(w) ? null : num(w);
-    if (Number.isNaN(v.weightGrams)) err(where, 'Weight must be a number or -');
+    // Product size (inches) and weight (pounds) of this SKU: shown on the product page, weight also goes to Shopify (shipping).
+    const dimCols = ['Length (in)', 'Width (in)', 'Height (in)'];
+    const dimRaw = dimCols.map(h => r[h]);
+    const dimFilled = dimRaw.filter(x => !blank(x)).length;
+    v.size = null;
+    if (dimFilled === 3) {
+      const [l, w, h] = dimRaw.map(num);
+      if ([l, w, h].some(x => Number.isNaN(x) || x <= 0)) err(where, `Length, Width and Height must be numbers above 0 (got ${dimRaw.join(' x ')})`);
+      else v.size = { l, w, h };
+    } else if (dimFilled > 0) err(where, 'Length, Width and Height must ALL be filled (or all be -)');
+    const wt = r['Weight (lb)'];
+    v.weightLb = blank(wt) ? null : num(wt);
+    if (Number.isNaN(v.weightLb) || (v.weightLb !== null && v.weightLb <= 0)) err(where, `Weight (lb) must be a number above 0 or - (got "${wt}")`);
     v.image = blank(r['Variant Image URL']) ? '' : r['Variant Image URL'];
     if (v.image && !isUrl(v.image)) err(where, 'Variant Image URL is not an https link');
     for (const i of [1, 2]) {
@@ -227,5 +236,8 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
       }
     }
   }
+  const vs = products.flatMap(p => p.variants);
+  const noSize = vs.filter(v => !v.size).length, noWeight = vs.filter(v => v.weightLb === null).length;
+  if (noSize || noWeight) warnings.push({ where: 'Products', msg: `${noSize} variant(s) have no Length/Width/Height and ${noWeight} have no Weight: nothing is shown or sent to Shopify for them` });
   return { categories, products, featured, errors, warnings };
 }

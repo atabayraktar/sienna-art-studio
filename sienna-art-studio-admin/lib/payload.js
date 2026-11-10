@@ -37,6 +37,22 @@ export function toHtml(text) {
 export const stripQuery = u => u.split('?')[0];
 
 // existingMedia: Map<url without query, MediaImage id> of the product being updated (empty for a new product)
+// Size and weight block added under the description (what the customer sees). Same values for every variant = one line, else one line per variant.
+const fmt = n => String(Math.round(n * 100) / 100);
+export function specsHtml(p) {
+  const rows = p.variants.map(v => ({
+    label: v.options && v.options.length ? v.options.map(o => o.value).join(' / ') : v.sku,
+    size: v.size ? `${fmt(v.size.l)} × ${fmt(v.size.w)} × ${fmt(v.size.h)} in` : '',
+    weight: v.weightLb !== null && v.weightLb !== undefined ? `${fmt(v.weightLb)} lb` : '',
+  })).filter(r => r.size || r.weight);
+  if (!rows.length) return '';
+  const same = rows.length === p.variants.length && rows.every(r => r.size === rows[0].size && r.weight === rows[0].weight);
+  if (same) {
+    return '<p>' + [rows[0].size && `<strong>Dimensions (L × W × H):</strong> ${rows[0].size}`, rows[0].weight && `<strong>Weight:</strong> ${rows[0].weight}`].filter(Boolean).join('<br>') + '</p>';
+  }
+  return '<p><strong>Dimensions (L × W × H) and weight</strong><br>' + rows.map(r => `${esc(r.label)}: ${[r.size, r.weight].filter(Boolean).join(', ')}`).join('<br>') + '</p>';
+}
+
 export function buildProductSetInput(p, { locationId, collectionIds = [], existingMedia = new Map(), vendor = 'Sienna Art Studio' }) {
   const multi = p.variants.length > 1;
   const fileRef = url => {
@@ -45,7 +61,8 @@ export function buildProductSetInput(p, { locationId, collectionIds = [], existi
   };
 
   const input = { title: p.name, vendor, status: p.status.toUpperCase() };
-  if (p.description) input.descriptionHtml = toHtml(p.description);
+  const specs = specsHtml(p);
+  if (p.description || specs) input.descriptionHtml = (p.description ? toHtml(p.description) : '') + specs;
   if (p.tags.length) input.tags = p.tags;
   if (collectionIds.length) input.collections = collectionIds;
 
@@ -67,7 +84,7 @@ export function buildProductSetInput(p, { locationId, collectionIds = [], existi
       inventoryItem: { sku: v.sku, tracked: true },
     };
     if (v.compareAt !== null) out.compareAtPrice = v.compareAt.toFixed(2);
-    if (v.weightGrams !== null) out.inventoryItem.measurement = { weight: { value: v.weightGrams, unit: 'GRAMS' } };
+    if (v.weightLb !== null) out.inventoryItem.measurement = { weight: { value: v.weightLb, unit: 'POUNDS' } };
     if (v.stock !== null && locationId) out.inventoryQuantities = [{ locationId, name: 'available', quantity: v.stock }];
     if (v.image) out.file = fileRef(v.image);
     return out;
@@ -82,7 +99,6 @@ export function buildProductSetInput(p, { locationId, collectionIds = [], existi
     metafields.push({ namespace: 'sienna', key: 'is_custom', type: 'boolean', value: 'true' });
     metafields.push({ namespace: 'sienna', key: 'customer_fields', type: 'json', value: JSON.stringify(p.customFields) });
   }
-  if (p.dimensions) metafields.push({ namespace: 'sienna', key: 'dimensions', type: 'single_line_text_field', value: p.dimensions });
   if (metafields.length) input.metafields = metafields;
   return input;
 }
