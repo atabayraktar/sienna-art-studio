@@ -21,17 +21,35 @@ export async function prepare() {
   };
 }
 
-export async function upsertCollection(cat, dryRun) {
+// True when the picture link opens. A dead link (file renamed or deleted in Shopify) makes Shopify refuse the whole save.
+async function imageOpens(url) {
+  try {
+    const r = await fetch(url, { method: 'HEAD' });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+// publicationId = the Online Store channel: a collection that is not published there does not exist for the site
+// (the menu link and the sub-category card stay empty), so the import publishes it.
+export async function upsertCollection(cat, dryRun, publicationId = null) {
   const handle = collectionHandle(cat.name);
-  const d = await gql(`query($h: String!) {
-    collectionByIdentifier(identifier: { handle: $h }) { id title image { url } ruleSet { appliedDisjunctively } }
-  }`, { h: handle });
+  const d = await gql(`query($h: String!${publicationId ? ', $p: ID!' : ''}) {
+    collectionByIdentifier(identifier: { handle: $h }) { id title image { url } ruleSet { appliedDisjunctively }${publicationId ? ' publishedOnPublication(publicationId: $p)' : ''} }
+  }`, publicationId ? { h: handle, p: publicationId } : { h: handle });
   const ex = d.collectionByIdentifier;
   const smart = Boolean(ex && ex.ruleSet);
-  if (dryRun) return { action: ex ? 'update' : 'create', handle, id: ex ? ex.id : null, smart };
+  const needsPublish = Boolean(publicationId) && !(ex && ex.publishedOnPublication);
+  let wantImage = Boolean(cat.image) && (!ex || !ex.image || stripQuery(ex.image.url) !== stripQuery(cat.image));
+  let imageWarning = '';
+  if (wantImage && !(await imageOpens(cat.image))) {
+    wantImage = false;
+    imageWarning = `the Image URL does not open (the file was renamed or deleted in Shopify), so ${ex && ex.image ? 'the current picture is kept' : 'it has no picture'}. Put a working link in the Excel.`;
+  }
+  if (dryRun) return { action: ex ? 'update' : 'create', handle, id: ex ? ex.id : null, smart, publish: needsPublish, imageWarning };
 
   let id;
-  const wantImage = cat.image && (!ex || !ex.image || stripQuery(ex.image.url) !== stripQuery(cat.image));
   if (ex) {
     id = ex.id;
     const input = { id, title: cat.name };
@@ -41,11 +59,18 @@ export async function upsertCollection(cat, dryRun) {
     if (e.length) throw new Error(e.join('; '));
   } else {
     const input = { title: cat.name, handle };
-    if (cat.image) input.image = { src: cat.image, altText: cat.name };
+    if (wantImage) input.image = { src: cat.image, altText: cat.name };
     const r = await gql(`mutation($input: CollectionInput!) { collectionCreate(input: $input) { collection { id } userErrors { field message } } }`, { input });
     const e = userErrors(r.collectionCreate.userErrors);
     if (e.length) throw new Error(e.join('; '));
     id = r.collectionCreate.collection.id;
+  }
+  let published = false;
+  if (needsPublish) {
+    const pr = await gql(`mutation($id: ID!, $pub: ID!) { publishablePublish(id: $id, input: [{ publicationId: $pub }]) { userErrors { field message } } }`, { id, pub: publicationId });
+    const pe = userErrors(pr.publishablePublish.userErrors).filter(m => !/already/i.test(m));
+    if (pe.length) throw new Error('saved, but publishing to the Online Store failed: ' + pe.join('; '));
+    published = true;
   }
   const mf = buildCollectionMetafields(cat, id);
   if (mf.length) {
@@ -53,7 +78,7 @@ export async function upsertCollection(cat, dryRun) {
     const e = userErrors(r.metafieldsSet.userErrors);
     if (e.length) throw new Error('metafields: ' + e.join('; '));
   }
-  return { action: ex ? 'updated' : 'created', handle, id, smart };
+  return { action: ex ? 'updated' : 'created', handle, id, smart, published, imageWarning };
 }
 
 const PRODUCT_FIELDS = 'id handle variants(first: 100) { nodes { sku } } media(first: 100) { nodes { id ... on MediaImage { image { url } } } }';
@@ -136,9 +161,15 @@ export async function writeMenu(categories, dryRun) {
 export async function writeFeatured(featured, { handles = {}, draftSkus = [], knownSkus = [] } = {}, dryRun) {
   const known = new Set(knownSkus.map(x => x.toLowerCase()));
   const drafts = new Set(draftSkus.map(x => x.toLowerCase()));
-  const value = { best_sellers: [], new_arrivals: [], top_bar: (featured.top_bar || []).slice(), hero: featured.hero || null }; // top_bar = plain texts of the moving bar (max 3)
+  const value = { best_sellers: [], new_arrivals: [], top_bar: (featured.top_bar || []).slice(), hero: featured.hero ? { ...featured.hero } : null }; // top_bar = plain texts of the moving bar (max 3)
   const missing = [];
   const hidden = [];
+  const deadImages = []; // hero pictures whose link does not open: left empty, so the theme shows its own picture instead of a broken one
+  if (value.hero) {
+    for (const [k, label] of [['image', 'Hero Image URL'], ['imageBack', 'Hero Back Image URL']]) {
+      if (value.hero[k] && !(await imageOpens(value.hero[k]))) { deadImages.push(label); value.hero[k] = ''; }
+    }
+  }
   for (const key of ['best_sellers', 'new_arrivals']) {
     for (const sku of featured[key] || []) {
       let handle = handles[sku] || null;
@@ -155,12 +186,12 @@ export async function writeFeatured(featured, { handles = {}, draftSkus = [], kn
   }
   if (missing.length) throw new Error(`These SKUs are not in the store: ${missing.join(', ')}. Check the spelling, or add the product to the Products tab.`);
   const counts = { bestSellers: (featured.best_sellers || []).length, newArrivals: (featured.new_arrivals || []).length, topBar: value.top_bar.length, hero: Boolean(value.hero) };
-  if (dryRun) return { action: 'write', ...counts, hidden };
+  if (dryRun) return { action: 'write', ...counts, hidden, deadImages };
   const d = await gql(`{ shop { id } }`);
   const r = await gql(`mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { field message } } }`, {
     m: [{ ownerId: d.shop.id, namespace: 'sienna', key: 'featured', type: 'json', value: JSON.stringify(value) }],
   });
   const e = userErrors(r.metafieldsSet.userErrors);
   if (e.length) throw new Error(e.join('; '));
-  return { action: 'written', ...counts, hidden };
+  return { action: 'written', ...counts, hidden, deadImages };
 }

@@ -67,9 +67,11 @@ export default function Importer() {
       const ids = {}; // category name (lowercase) -> { id, smart }
       for (const c of cats) {
         try {
-          const r = await post('/api/import/collection', { category: c, dryRun });
+          const r = await post('/api/import/collection', { category: c, dryRun, publicationId: prep.publicationId });
           ids[c.name.toLowerCase()] = r;
           if (r.smart) addLog(`! ${c.type} "${c.name}" is an automatic (rule based) collection: products cannot be added to it by the panel.`, 'warn');
+          if (r.imageWarning) addLog(`! ${c.type} "${c.name}": ${r.imageWarning}`, 'warn', `Category "${c.name}": ${r.imageWarning}`);
+          if (r.publish || r.published) addLog(`${c.type} ${c.name}: ${dryRun ? 'will be published' : 'published'} on the Online Store`, 'ok');
           addLog(`${c.type} ${c.name}: ${r.action}`, 'ok'); stats.ok++; catOk++;
         } catch (e) { addLog(`${c.type} ${c.name}: FAILED ${e.message}`, 'bad', `Category "${c.name}" could not be saved. ${e.message}`); stats.failed++; }
         tick();
@@ -103,6 +105,7 @@ export default function Importer() {
           const r = await post('/api/import/featured', { featured: plan.featured, handles, draftSkus, knownSkus, dryRun });
           addLog(`Home page lists: ${r.bestSellers} best sellers, ${r.newArrivals} new arrivals, ${r.topBar} top bar message(s), hero ${r.hero ? 'set' : 'not set'}: ${r.action}`, 'ok',
             `The home page ${dryRun ? 'will show' : 'now shows'} ${r.bestSellers} best seller(s) and ${r.newArrivals} new arrival(s)${r.topBar ? ` and ${r.topBar} message(s) in the top bar` : ''}${r.hero ? ', and the top banner (hero)' : ''}`); stats.ok++;
+          if (r.deadImages && r.deadImages.length) addLog(`! Hero: ${r.deadImages.join(' and ')} does not open (file renamed or deleted in Shopify): the theme's own picture is shown instead`, 'warn', `Home page banner: the ${r.deadImages.join(' and ')} link does not open, so the site shows its default picture there. Put a working link in the Excel.`);
           if (r.hidden && r.hidden.length) addLog(`! Hidden (draft) products in the home page lists: ${r.hidden.join(', ')}`, 'warn', `These products are hidden (draft), so they will not show on the home page: ${r.hidden.join(', ')}`);
         } catch (e) { addLog(`Home page lists: FAILED ${e.message}`, 'bad', `The home page lists could not be updated. ${e.message}`); stats.failed++; }
       }

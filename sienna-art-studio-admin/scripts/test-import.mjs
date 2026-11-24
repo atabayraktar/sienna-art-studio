@@ -99,7 +99,7 @@ await t('hero from the Excel: title, description and both pictures', () => {
   assert.deepEqual(real.featured.hero, {
     title: 'Light Up|Their Space.|Make It Personal.',
     description: 'Colorful lighting, custom art, and thoughtful gifts for every occasion.',
-    image: 'https://cdn.shopify.com/s/files/1/1015/4564/0299/files/H073bfbd95ee141f2b00ba72770d73e0dV.jpg',
+    image: 'https://cdn.shopify.com/s/files/1/1015/4564/0299/files/H073bfbd95ee141f2b00ba72770d73e0dV_48ff9deb-4a03-436a-8ee4-9edfc5ac7d88.jpg',
     imageBack: 'https://cdn.shopify.com/s/files/1/1015/4564/0299/files/emerald-mosaic-star.jpg',
   });
 });
@@ -178,7 +178,10 @@ const { upsertProduct, upsertCollection, writeMenu, writeFeatured, prepare } = a
 const calls = [];
 let existing = null;
 let byHandle = {}; // handle -> product, for the direct handle lookup
+// picture links: a HEAD request; any link with "dead" in it does not open
+const headCheck = (url, init) => (init && init.method === 'HEAD' ? { ok: !String(url).includes('dead'), status: String(url).includes('dead') ? 404 : 200 } : null);
 globalThis.fetch = async (url, init) => {
+  const head = headCheck(url, init); if (head) return head;
   const { query, variables } = JSON.parse(init.body);
   calls.push({ query, variables });
   const ok = data => ({ ok: true, status: 200, json: async () => ({ data }), text: async () => '' });
@@ -253,6 +256,20 @@ await t('collection: existing live handle is updated, new one is created, metafi
   assert.equal(b.action, 'created');
   assert.ok(calls.some(c => c.query.includes('metafieldsSet') && c.variables.m.some(m => m.key === 'header_image')));
 });
+await t('collection: a new one is published on the Online Store; a dead picture link is skipped with a warning, not a failure', async () => {
+  calls.length = 0;
+  const c = await upsertCollection({ name: 'Garden', type: 'Subcategory', tagline: '', image: 'https://x/dead.jpg', headerImage: '', parent: 'Home Decor' }, false, 'gid://pub/1');
+  assert.equal(c.action, 'created');
+  assert.equal(c.published, true);
+  const pub = calls.find(x => x.query.includes('publishablePublish'));
+  assert.deepEqual(pub.variables, { id: 'gid://shopify/Collection/2', pub: 'gid://pub/1' });
+  assert.equal(calls.find(x => x.query.includes('collectionCreate')).variables.input.image, undefined, 'dead link must not be sent to Shopify');
+  assert.match(c.imageWarning, /does not open/);
+  calls.length = 0;
+  const ok = await upsertCollection({ name: 'Garden', type: 'Subcategory', tagline: '', image: 'https://x/fine.jpg', headerImage: '', parent: 'Home Decor' }, true, 'gid://pub/1');
+  assert.equal(ok.publish, true); assert.equal(ok.imageWarning, '');
+  assert.ok(calls.every(x => !x.query.includes('mutation')), 'dry run must not write');
+});
 
 await t('menu: 4 top categories in Excel order, children grouped, handles kept', () => {
   const m = buildMenu(real.categories);
@@ -265,6 +282,7 @@ await t('menu: 4 top categories in Excel order, children grouped, handles kept',
 await t('home page lists: handles of this import are used, others are looked up, metafield sienna.featured is written', async () => {
   const orig = globalThis.fetch; const seen = [];
   globalThis.fetch = async (u, init) => {
+    const head = headCheck(u, init); if (head) return head;
     const { query, variables } = JSON.parse(init.body); seen.push({ query, variables });
     const ok = data => ({ ok: true, status: 200, json: async () => ({ data }), text: async () => '' });
     if (query.includes('productVariants(')) return ok({ productVariants: { nodes: variables.q.includes('IN-STORE') ? [{ sku: 'IN-STORE', product: { handle: 'store-only', status: 'ACTIVE' } }] : [] } });
@@ -290,6 +308,11 @@ await t('home page lists: handles of this import are used, others are looked up,
     // dry run: a SKU that the Excel will create is fine
     const d2 = await writeFeatured({ best_sellers: ['NEW-SKU'], new_arrivals: [] }, { knownSkus: ['NEW-SKU'] }, true);
     assert.equal(d2.action, 'write');
+    // a hero picture whose link does not open is left empty (the theme shows its own picture) and reported
+    seen.length = 0;
+    const d3 = await writeFeatured({ best_sellers: [], new_arrivals: [], hero: { title: 'T', description: '', image: 'https://x/dead.jpg', imageBack: 'https://x/2.jpg' } }, {}, false);
+    assert.deepEqual(d3.deadImages, ['Hero Image URL']);
+    assert.deepEqual(JSON.parse(seen.find(c => c.query.includes('metafieldsSet')).variables.m[0].value).hero, { title: 'T', description: '', image: '', imageBack: 'https://x/2.jpg' });
   } finally { globalThis.fetch = orig; }
 });
 
