@@ -37,20 +37,16 @@ export function toHtml(text) {
 export const stripQuery = u => u.split('?')[0];
 
 // existingMedia: Map<url without query, MediaImage id> of the product being updated (empty for a new product)
-// Size and weight block added under the description (what the customer sees). Same values for every variant = one line, else one line per variant.
-const fmt = n => String(Math.round(n * 100) / 100);
+// Dimensions line added under the description (what the customer sees). Same text for every variant = one line, else one line per variant.
 export function specsHtml(p) {
   const rows = p.variants.map(v => ({
     label: v.options && v.options.length ? v.options.map(o => o.value).join(' / ') : v.sku,
-    size: v.size ? `${fmt(v.size.l)} × ${fmt(v.size.w)} × ${fmt(v.size.h)} in` : '',
-    weight: v.weightLb !== null && v.weightLb !== undefined ? `${fmt(v.weightLb)} lb` : '',
-  })).filter(r => r.size || r.weight);
+    dim: (v.dimensions || '').trim(),
+  })).filter(r => r.dim);
   if (!rows.length) return '';
-  const same = rows.length === p.variants.length && rows.every(r => r.size === rows[0].size && r.weight === rows[0].weight);
-  if (same) {
-    return '<p>' + [rows[0].size && `<strong>Dimensions (L × W × H):</strong> ${rows[0].size}`, rows[0].weight && `<strong>Weight:</strong> ${rows[0].weight}`].filter(Boolean).join('<br>') + '</p>';
-  }
-  return '<p><strong>Dimensions (L × W × H) and weight</strong><br>' + rows.map(r => `${esc(r.label)}: ${[r.size, r.weight].filter(Boolean).join(', ')}`).join('<br>') + '</p>';
+  const same = rows.length === p.variants.length && rows.every(r => r.dim === rows[0].dim);
+  if (same) return `<p><strong>Dimensions:</strong> ${esc(rows[0].dim)}</p>`;
+  return '<p><strong>Dimensions</strong><br>' + rows.map(r => `${esc(r.label)}: ${esc(r.dim)}`).join('<br>') + '</p>';
 }
 
 export function buildProductSetInput(p, { locationId, collectionIds = [], existingMedia = new Map(), vendor = 'Sienna Art Studio' }) {
@@ -84,7 +80,6 @@ export function buildProductSetInput(p, { locationId, collectionIds = [], existi
       inventoryItem: { sku: v.sku, tracked: true },
     };
     if (v.compareAt !== null) out.compareAtPrice = v.compareAt.toFixed(2);
-    if (v.weightLb !== null) out.inventoryItem.measurement = { weight: { value: v.weightLb, unit: 'POUNDS' } };
     if (v.stock !== null && locationId) out.inventoryQuantities = [{ locationId, name: 'available', quantity: v.stock }];
     if (v.image) out.file = fileRef(v.image);
     return out;

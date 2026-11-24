@@ -2,7 +2,7 @@
 import ExcelJS from 'exceljs';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { parseWorkbook, sheetToObjects, FEATURED_TAB } from '../lib/parse-workbook.js';
+import { parseWorkbook, sheetToObjects, FEATURED_TAB, FEATURED_TAB_LEGACY } from '../lib/parse-workbook.js';
 import { buildProductSetInput, buildMenu, collectionHandle, toHtml, specsHtml } from '../lib/payload.js';
 
 let pass = 0;
@@ -32,7 +32,7 @@ await t('home page lists tab: 5 best sellers + 5 new arrivals, in row order, no 
   assert.equal(real.featured.best_sellers.length, 5);
   assert.equal(real.featured.new_arrivals.length, 5);
   assert.equal(real.featured.best_sellers[0], 'SAS-LAMP-SBL');
-  assert.equal(real.warnings.filter(w => w.where.startsWith('Best Sellers')).length, 0);
+  assert.equal(real.warnings.filter(w => w.where.startsWith('Site Customization')).length, 0);
 });
 await t('top bar: 2 messages from the Excel, in row order', () => {
   assert.deepEqual(real.featured.top_bar, ['Coming soon', 'Lamps, personalized gifts and little surprises']);
@@ -54,9 +54,10 @@ await bad('unknown category', wb => { const ws = wb.getWorksheet('Products'); ws
 await bad('6 best sellers (max is 5)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(12, 1).value = 'Best sellers'; ws.getCell(12, 2).value = 'SAS-LAMP-DCG'; }, 'at most 5');
 await bad('4 top bar messages (max is 3)', wb => { const ws = wb.getWorksheet(FEATURED_TAB); for (const r of [14, 15]) { ws.getCell(r, 1).value = 'Top bar'; ws.getCell(r, 4).value = 'Msg ' + r; } }, 'at most 3 messages');
 await bad('top bar row without text', wb => { wb.getWorksheet(FEATURED_TAB).getCell(12, 4).value = '-'; }, 'has no text');
-await bad('only some of Length/Width/Height', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Length (in)')).value = 10; }, 'must ALL be filled');
-await bad('zero weight', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Weight (lb)')).value = 0; }, 'Weight (lb) must be');
-await bad('size is not a number', wb => { const ws = wb.getWorksheet('Products'); for (const h of ['Length (in)', 'Width (in)', 'Height (in)']) ws.getCell(2, col(ws, h)).value = h === 'Width (in)' ? 'big' : 3; }, 'must be numbers above 0');
+await bad('Dimensions column missing', wb => { const ws = wb.getWorksheet('Products'); ws.getCell(1, col(ws, 'Dimensions')).value = 'Size'; }, 'Missing column "Dimensions"');
+await bad('hero with 2 rows', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(15, 1).value = 'Hero'; ws.getCell(15, 5).value = 'Second'; }, 'only have ONE row');
+await bad('hero picture is not a link', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(14, 7).value = 'golden.jpg'; }, 'Hero Image URL is not an https link');
+await bad('hero title too long', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(14, 5).value = 'x'.repeat(91); }, 'Hero Title is too long');
 await bad('unknown home page section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 1).value = 'Top picks'; }, 'Section must be');
 await bad('same SKU twice in one section', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(3, 2).value = ws.getCell(2, 2).value; }, 'listed twice');
 await bad('home page row without a SKU', wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(2, 2).value = '-'; }, 'SKU is empty');
@@ -93,29 +94,40 @@ await t('two-color toy: 2 variants, one Color option, variant files, stock + loc
   assert.equal(i.files, undefined); // all its pictures are variant pictures
   assert.deepEqual(i.collections, ['gid://c/1']);
 });
-await t('size + weight: columns parsed, weight sent in pounds, block added under the description', async () => {
-  const r = await load(wb => {
-    const ws = wb.getWorksheet('Products');
-    ws.getCell(2, col(ws, 'Length (in)')).value = 12; ws.getCell(2, col(ws, 'Width (in)')).value = 8.5; ws.getCell(2, col(ws, 'Height (in)')).value = 6;
-    ws.getCell(2, col(ws, 'Weight (lb)')).value = 2.5;
+await t('hero from the Excel: title, description and both pictures', () => {
+  assert.deepEqual(real.featured.hero, {
+    title: 'Light Up|Their Space.|Make It Personal.',
+    description: 'Colorful lighting, custom art, and thoughtful gifts for every occasion.',
+    image: 'https://cdn.shopify.com/s/files/1/1015/4564/0299/files/H073bfbd95ee141f2b00ba72770d73e0dV.jpg',
+    imageBack: 'https://cdn.shopify.com/s/files/1/1015/4564/0299/files/emerald-mosaic-star.jpg',
   });
+});
+await t('hero: "-" cells mean nothing (theme editor values stay); no hero row = null', async () => {
+  const r = await load(wb => { const ws = wb.getWorksheet(FEATURED_TAB); ws.getCell(14, 5).value = '-'; ws.getCell(14, 7).value = '-'; });
+  assert.deepEqual(r.errors, []);
+  assert.equal(r.featured.hero.title, ''); assert.equal(r.featured.hero.image, '');
+  assert.ok(r.featured.hero.description);
+  const n = await load(wb => { wb.getWorksheet(FEATURED_TAB).spliceRows(14, 1); });
+  assert.deepEqual(n.errors, []); assert.equal(n.featured.hero, null);
+});
+await t('old tab name is still accepted by the loader helper', () => { assert.equal(FEATURED_TAB_LEGACY, 'Best Sellers & New Arrivals'); });
+await t('dimensions: free text per SKU, shown under the description, no weight sent', async () => {
+  const r = await load(wb => { const ws = wb.getWorksheet('Products'); ws.getCell(2, col(ws, 'Dimensions')).value = '12 × 8.5 × 6 in'; });
   assert.deepEqual(r.errors, []);
   const p = r.products[0];
-  assert.deepEqual(p.variants[0].size, { l: 12, w: 8.5, h: 6 });
-  assert.equal(p.variants[0].weightLb, 2.5);
+  assert.equal(p.variants[0].dimensions, '12 × 8.5 × 6 in');
   const i = buildProductSetInput(p, { locationId: LOC });
-  assert.deepEqual(i.variants[0].inventoryItem.measurement, { weight: { value: 2.5, unit: 'POUNDS' } });
-  assert.ok(i.descriptionHtml.endsWith('<p><strong>Dimensions (L × W × H):</strong> 12 × 8.5 × 6 in<br><strong>Weight:</strong> 2.5 lb</p>'), i.descriptionHtml.slice(-120));
-  // a product with no size/weight gets no block and no measurement
-  const q = buildProductSetInput(real.products[1], { locationId: LOC });
+  assert.ok(i.variants.every(v => v.inventoryItem.measurement === undefined));
+  assert.ok(i.descriptionHtml.endsWith('<p><strong>Dimensions:</strong> 12 × 8.5 × 6 in</p>'), i.descriptionHtml.slice(-120));
+  // a product with no dimensions gets no block
+  const q = buildProductSetInput(real.products.find(x => !x.variants.some(v => v.dimensions)) || { ...p, variants: [{ ...p.variants[0], dimensions: '' }] }, { locationId: LOC });
   assert.ok(!/Dimensions/.test(q.descriptionHtml || ''));
-  assert.equal(q.variants[0].inventoryItem.measurement, undefined);
 });
-await t('size + weight: variants with different sizes get one line each', () => {
+await t('dimensions: variants with different sizes get one line each, text is escaped', () => {
   const p = { description: '', variants: [
-    { sku: 'A', options: [{ value: 'Small' }], size: { l: 5, w: 5, h: 8 }, weightLb: 1 },
-    { sku: 'B', options: [{ value: 'Large' }], size: { l: 9, w: 9, h: 14 }, weightLb: 3.25 } ] };
-  assert.equal(specsHtml(p), '<p><strong>Dimensions (L × W × H) and weight</strong><br>Small: 5 × 5 × 8 in, 1 lb<br>Large: 9 × 9 × 14 in, 3.25 lb</p>');
+    { sku: 'A', options: [{ value: 'Small' }], dimensions: '5 × 5 × 8 in' },
+    { sku: 'B', options: [{ value: 'Large' }], dimensions: '9 × 9 × 14 <in>' } ] };
+  assert.equal(specsHtml(p), '<p><strong>Dimensions</strong><br>Small: 5 × 5 × 8 in<br>Large: 9 × 9 × 14 &lt;in&gt;</p>');
 });
 await t('marble lamp: two options, both named', () => {
   const i = buildProductSetInput(by('SAS-LED'), { locationId: LOC });
@@ -245,7 +257,7 @@ await t('home page lists: handles of this import are used, others are looked up,
     throw new Error('unexpected ' + query.slice(0, 40));
   };
   try {
-    const f = { best_sellers: ['A-1', 'IN-STORE'], new_arrivals: ['B-1'], top_bar: ['Coming soon', 'Free gift wrap'] };
+    const f = { best_sellers: ['A-1', 'IN-STORE'], new_arrivals: ['B-1'], top_bar: ['Coming soon', 'Free gift wrap'], hero: { title: 'A|B', description: 'D', image: 'https://x/1.jpg', imageBack: '' } };
     const dry = await writeFeatured(f, { handles: { 'A-1': 'a-one', 'B-1': 'b-one' } }, true);
     assert.equal(dry.action, 'write'); assert.equal(dry.bestSellers, 2); assert.equal(dry.newArrivals, 1);
     assert.ok(seen.every(c => !c.query.includes('mutation')), 'dry run must not write');
@@ -254,7 +266,8 @@ await t('home page lists: handles of this import are used, others are looked up,
     assert.equal(w.action, 'written'); assert.deepEqual(w.hidden, ['B-1']);
     const mf = seen.find(c => c.query.includes('metafieldsSet')).variables.m[0];
     assert.equal(mf.key, 'featured'); assert.equal(mf.type, 'json');
-    assert.deepEqual(JSON.parse(mf.value), { best_sellers: ['a-one', 'store-only'], new_arrivals: ['b-one'], top_bar: ['Coming soon', 'Free gift wrap'] });
+    assert.deepEqual(JSON.parse(mf.value), { best_sellers: ['a-one', 'store-only'], new_arrivals: ['b-one'], top_bar: ['Coming soon', 'Free gift wrap'], hero: { title: 'A|B', description: 'D', image: 'https://x/1.jpg', imageBack: '' } });
+    assert.equal(w.hero, true);
     assert.equal(w.topBar, 2);
     // a SKU that exists nowhere stops the write
     await assert.rejects(writeFeatured({ best_sellers: ['NOPE-9'], new_arrivals: [] }, {}, false), /not in the store: NOPE-9/);

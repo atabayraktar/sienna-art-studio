@@ -115,13 +115,13 @@ export async function writeMenu(categories, dryRun) {
   return { action: 'written', groups: menu.length };
 }
 
-// Which products the home page shows under "Best sellers" and "New arrivals" (max 5 each).
+// What the home page shows: hero text + pictures, "Best sellers" and "New arrivals" (max 5 each), top bar messages.
 // Writes the product HANDLES to the shop metafield sienna.featured (the theme reads it).
 // handles = sku -> handle of the products this same import just saved; any other SKU is looked up in the store.
 export async function writeFeatured(featured, { handles = {}, draftSkus = [], knownSkus = [] } = {}, dryRun) {
   const known = new Set(knownSkus.map(x => x.toLowerCase()));
   const drafts = new Set(draftSkus.map(x => x.toLowerCase()));
-  const value = { best_sellers: [], new_arrivals: [], top_bar: (featured.top_bar || []).slice() }; // top_bar = plain texts of the moving bar (max 3)
+  const value = { best_sellers: [], new_arrivals: [], top_bar: (featured.top_bar || []).slice(), hero: featured.hero || null }; // top_bar = plain texts of the moving bar (max 3)
   const missing = [];
   const hidden = [];
   for (const key of ['best_sellers', 'new_arrivals']) {
@@ -139,7 +139,7 @@ export async function writeFeatured(featured, { handles = {}, draftSkus = [], kn
     }
   }
   if (missing.length) throw new Error(`These SKUs are not in the store: ${missing.join(', ')}. Check the spelling, or add the product to the Products tab.`);
-  const counts = { bestSellers: (featured.best_sellers || []).length, newArrivals: (featured.new_arrivals || []).length, topBar: value.top_bar.length };
+  const counts = { bestSellers: (featured.best_sellers || []).length, newArrivals: (featured.new_arrivals || []).length, topBar: value.top_bar.length, hero: Boolean(value.hero) };
   if (dryRun) return { action: 'write', ...counts, hidden };
   const d = await gql(`{ shop { id } }`);
   const r = await gql(`mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { field message } } }`, {

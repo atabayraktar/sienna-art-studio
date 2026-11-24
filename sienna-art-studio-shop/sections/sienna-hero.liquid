@@ -1,4 +1,11 @@
+{%- comment -%}
+  Title, text and pictures come from the admin panel's Excel (tab "Site Customization", Section "Hero";
+  shop metafield sienna.featured.hero). Anything empty there falls back to the theme editor settings below.
+{%- endcomment -%}
 {%- liquid
+  assign feed = shop.metafields.sienna.featured.value.hero
+  assign main_url = feed.image
+  assign back_url = feed.imageBack
   assign main_img = section.settings.image
   if main_img == blank
     assign main_img = section.settings.product.featured_image
@@ -7,7 +14,9 @@
   if back_img == blank
     assign back_img = section.settings.product_back.featured_image
   endif
-  assign head_lines = section.settings.heading | split: '|'
+  assign head_text = feed.title | default: section.settings.heading
+  assign head_lines = head_text | split: '|'
+  assign sub_text = feed.description | default: section.settings.subheading
 -%}
 
 <section class="s-hero" data-hero data-lights="off" id="Hero-{{ section.id }}">
@@ -32,7 +41,7 @@
           </span>
         {%- endfor -%}
       </h1>
-      <p class="s-hero__sub">{{ section.settings.subheading }}</p>
+      <p class="s-hero__sub">{{ sub_text }}</p>
       <div class="s-hero__cta">
         {%- if section.settings.button_label != blank -%}
           <a class="s-btn s-btn--solid" href="{{ section.settings.button_link | default: '#s-best-sellers' }}" data-scroll-best>
@@ -51,7 +60,9 @@
 
     <div class="s-hero__art" data-hero-art>
       <div class="s-hero__block" data-depth="1">
-        {%- if back_img != blank -%}
+        {%- if back_url != blank -%}
+          <img class="s-hero__back-img" src="{{ back_url }}" width="900" height="900" loading="eager" alt="">
+        {%- elsif back_img != blank -%}
           {{
             back_img
             | image_url: width: 900
@@ -65,7 +76,9 @@
         {%- endif -%}
       </div>
       <figure class="s-hero__frame" data-depth="2">
-        {%- if main_img != blank -%}
+        {%- if main_url != blank -%}
+          <img class="s-hero__img" src="{{ main_url }}" width="1200" height="1200" loading="eager" fetchpriority="high" alt="{{ section.settings.image_alt | escape }}">
+        {%- elsif main_img != blank -%}
           {{
             main_img
             | image_url: width: 1200

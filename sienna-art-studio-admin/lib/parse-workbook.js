@@ -5,12 +5,15 @@
 export const DASH = '-';
 const GALLERY_COLS = 5;
 
-// Optional tab: which products the home page shows under "Best sellers" and "New arrivals" (max 5 each, by SKU).
-export const FEATURED_TAB = 'Best Sellers & New Arrivals';
+// Optional tab with what the home page shows: hero (title, text, pictures), "Best sellers" and "New arrivals" (max 5 each, by SKU), top bar messages.
+export const FEATURED_TAB = 'Site Customization';
+export const FEATURED_TAB_LEGACY = 'Best Sellers & New Arrivals'; // old name of the tab, still accepted
+export const HERO_TITLE_MAX = 90;
+export const HERO_TEXT_MAX = 220;
 export const FEATURED_MAX = 5;
 export const TOPBAR_MAX = 3; // messages in the moving bar at the top of the site
 export const TOPBAR_TEXT_MAX = 80;
-const FEATURED_SECTIONS = { 'best sellers': 'best_sellers', 'new arrivals': 'new_arrivals', 'top bar': 'top_bar' };
+const FEATURED_SECTIONS = { 'best sellers': 'best_sellers', 'new arrivals': 'new_arrivals', 'top bar': 'top_bar', hero: 'hero' };
 const FEATURED_LABEL = { best_sellers: 'Best sellers', new_arrivals: 'New arrivals' };
 
 export function cellText(v) {
@@ -53,9 +56,9 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
   const err = (where, msg) => errors.push({ where, msg });
 
   const needCat = ['Type', 'Name', 'Parent Category', 'Short Description', 'Image URL', 'Header Image URL (wide)'];
-  const needProd = ['Product Code', 'Product Name', 'Category', 'Subcategory', 'Description', 'Length (in)', 'Width (in)', 'Height (in)', 'Tags', 'Status', 'Custom Product',
+  const needProd = ['Product Code', 'Product Name', 'Category', 'Subcategory', 'Description', 'Dimensions', 'Tags', 'Status', 'Custom Product',
     'Customer Fields', 'Option 1 Name', 'Option 1 Value', 'Option 2 Name', 'Option 2 Value', 'SKU', 'Price (USD)', 'Compare-at Price', 'Stock Qty',
-    'Weight (lb)', 'Variant Image URL', ...Array.from({ length: GALLERY_COLS }, (_, i) => 'Image ' + (i + 1))];
+    'Variant Image URL', ...Array.from({ length: GALLERY_COLS }, (_, i) => 'Image ' + (i + 1))];
   for (const h of needCat) if (!categoriesSheet.headers.includes(h)) err('Categories', `Missing column "${h}". Column titles must not be renamed.`);
   for (const h of needProd) if (!productsSheet.headers.includes(h)) err('Products', `Missing column "${h}". Column titles must not be renamed.`);
   if (errors.length) return { categories: [], products: [], errors, warnings };
@@ -164,19 +167,8 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
     v.stock = st === '' ? null : num(st);
     if (v.stock !== null && (!Number.isInteger(v.stock) || v.stock < 0)) err(where, `Stock Qty must be a whole number 0 or more (got "${st}")`);
     if (v.stock === null) warnings.push({ where, msg: 'Stock Qty is empty: stock will not be changed' });
-    // Product size (inches) and weight (pounds) of this SKU: shown on the product page, weight also goes to Shopify (shipping).
-    const dimCols = ['Length (in)', 'Width (in)', 'Height (in)'];
-    const dimRaw = dimCols.map(h => r[h]);
-    const dimFilled = dimRaw.filter(x => !blank(x)).length;
-    v.size = null;
-    if (dimFilled === 3) {
-      const [l, w, h] = dimRaw.map(num);
-      if ([l, w, h].some(x => Number.isNaN(x) || x <= 0)) err(where, `Length, Width and Height must be numbers above 0 (got ${dimRaw.join(' x ')})`);
-      else v.size = { l, w, h };
-    } else if (dimFilled > 0) err(where, 'Length, Width and Height must ALL be filled (or all be -)');
-    const wt = r['Weight (lb)'];
-    v.weightLb = blank(wt) ? null : num(wt);
-    if (Number.isNaN(v.weightLb) || (v.weightLb !== null && v.weightLb <= 0)) err(where, `Weight (lb) must be a number above 0 or - (got "${wt}")`);
+    // Free text size of this SKU (e.g. 12 x 8 x 6 in): shown on the product page under the description.
+    v.dimensions = blank(r['Dimensions']) ? '' : r['Dimensions'];
     v.image = blank(r['Variant Image URL']) ? '' : r['Variant Image URL'];
     if (v.image && !isUrl(v.image)) err(where, 'Variant Image URL is not an https link');
     for (const i of [1, 2]) {
@@ -207,14 +199,25 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
   // ---------- home page sections (optional tab; no tab = the home page lists stay as they are)
   let featured = null;
   if (featuredSheet) {
-    featured = { best_sellers: [], new_arrivals: [], top_bar: [] };
+    featured = { best_sellers: [], new_arrivals: [], top_bar: [], hero: null };
     const known = new Set(products.flatMap(p => [p.code, ...p.variants.map(v => v.sku)]).map(x => String(x).toLowerCase()));
     for (const h of ['Section', 'SKU']) if (!featuredSheet.headers.includes(h)) err(FEATURED_TAB, `Missing column "${h}". Column titles must not be renamed.`);
     if (featuredSheet.headers.includes('Section') && featuredSheet.headers.includes('SKU')) {
       for (const r of featuredSheet.rows) {
         const where = `${FEATURED_TAB} row ${r._row}`;
         const key = FEATURED_SECTIONS[(r['Section'] || '').toLowerCase()];
-        if (!key) { err(where, `Section must be "Best sellers", "New arrivals" or "Top bar" (got "${r['Section']}")`); continue; }
+        if (!key) { err(where, `Section must be "Hero", "Best sellers", "New arrivals" or "Top bar" (got "${r['Section']}")`); continue; }
+        if (key === 'hero') {
+          // the big banner at the top of the home page. One row. "-" or empty = keep what is set in the theme editor.
+          if (featured.hero) { err(where, 'The Hero section can only have ONE row'); continue; }
+          const val = h => { const t = (r[h] || '').trim(); return blank(t) ? '' : t; };
+          const hero = { title: val('Hero Title'), description: val('Hero Description'), image: val('Hero Image URL'), imageBack: val('Hero Back Image URL') };
+          if (hero.title.length > HERO_TITLE_MAX) err(where, `Hero Title is too long (${hero.title.length} characters, max ${HERO_TITLE_MAX})`);
+          if (hero.description.length > HERO_TEXT_MAX) err(where, `Hero Description is too long (${hero.description.length} characters, max ${HERO_TEXT_MAX})`);
+          for (const [k, h] of [['image', 'Hero Image URL'], ['imageBack', 'Hero Back Image URL']]) if (hero[k] && !isUrl(hero[k])) err(where, `${h} is not an https link`);
+          featured.hero = hero;
+          continue;
+        }
         if (key === 'top_bar') {
           // the moving bar at the top of the site: plain text, no SKU
           const text = (r['Top Bar Text'] || '').trim();
@@ -236,8 +239,7 @@ export function parseWorkbook({ categoriesSheet, productsSheet, featuredSheet })
       }
     }
   }
-  const vs = products.flatMap(p => p.variants);
-  const noSize = vs.filter(v => !v.size).length, noWeight = vs.filter(v => v.weightLb === null).length;
-  if (noSize || noWeight) warnings.push({ where: 'Products', msg: `${noSize} variant(s) have no Length/Width/Height and ${noWeight} have no Weight: nothing is shown or sent to Shopify for them` });
+  const noDim = products.flatMap(p => p.variants).filter(v => !v.dimensions).length;
+  if (noDim) warnings.push({ where: 'Products', msg: `${noDim} variant(s) have no Dimensions: nothing is shown for them` });
   return { categories, products, featured, errors, warnings };
 }

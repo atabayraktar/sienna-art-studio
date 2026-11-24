@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { parseWorkbook, sheetToObjects, FEATURED_TAB } from '@/lib/parse-workbook';
+import { parseWorkbook, sheetToObjects, FEATURED_TAB, FEATURED_TAB_LEGACY } from '@/lib/parse-workbook';
 
 async function post(url, body) {
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -35,7 +35,7 @@ export default function Importer() {
       const ExcelJS = (await import('exceljs')).default;
       const wb = new ExcelJS.Workbook();
       await wb.xlsx.load(await file.arrayBuffer());
-      const c = wb.getWorksheet('Categories'), p = wb.getWorksheet('Products'), f = wb.getWorksheet(FEATURED_TAB);
+      const c = wb.getWorksheet('Categories'), p = wb.getWorksheet('Products'), f = wb.getWorksheet(FEATURED_TAB) || wb.getWorksheet(FEATURED_TAB_LEGACY);
       if (!c || !p) throw new Error('This is not the import file: the tabs "Categories" and "Products" are missing.');
       setPlan(parseWorkbook({ categoriesSheet: sheetToObjects(c), productsSheet: sheetToObjects(p), featuredSheet: f ? sheetToObjects(f) : undefined }));
     } catch (e) {
@@ -101,8 +101,8 @@ export default function Importer() {
         try {
           const knownSkus = plan.products.flatMap(p => p.variants.map(v => v.sku));
           const r = await post('/api/import/featured', { featured: plan.featured, handles, draftSkus, knownSkus, dryRun });
-          addLog(`Home page lists: ${r.bestSellers} best sellers, ${r.newArrivals} new arrivals, ${r.topBar} top bar message(s): ${r.action}`, 'ok',
-            `The home page ${dryRun ? 'will show' : 'now shows'} ${r.bestSellers} best seller(s) and ${r.newArrivals} new arrival(s)${r.topBar ? ` and ${r.topBar} message(s) in the top bar` : ''}`); stats.ok++;
+          addLog(`Home page lists: ${r.bestSellers} best sellers, ${r.newArrivals} new arrivals, ${r.topBar} top bar message(s), hero ${r.hero ? 'set' : 'not set'}: ${r.action}`, 'ok',
+            `The home page ${dryRun ? 'will show' : 'now shows'} ${r.bestSellers} best seller(s) and ${r.newArrivals} new arrival(s)${r.topBar ? ` and ${r.topBar} message(s) in the top bar` : ''}${r.hero ? ', and the top banner (hero)' : ''}`); stats.ok++;
           if (r.hidden && r.hidden.length) addLog(`! Hidden (draft) products in the home page lists: ${r.hidden.join(', ')}`, 'warn', `These products are hidden (draft), so they will not show on the home page: ${r.hidden.join(', ')}`);
         } catch (e) { addLog(`Home page lists: FAILED ${e.message}`, 'bad', `The home page lists could not be updated. ${e.message}`); stats.failed++; }
       }
