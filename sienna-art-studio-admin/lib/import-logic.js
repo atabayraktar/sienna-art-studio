@@ -1,7 +1,7 @@
 // Server-side import steps. Each step is one small request so it fits the free hosting time limits;
 // the browser calls them one by one and shows progress. dryRun = read from Shopify, write nothing.
 import { gql, userErrors } from './shopify.js';
-import { buildProductSetInput, buildCollectionMetafields, buildMenu, collectionHandle, stripQuery } from './payload.js';
+import { buildProductSetInput, buildCollectionMetafields, buildMenu, collectionHandle, productHandle, stripQuery } from './payload.js';
 
 export async function prepare() {
   const d = await gql(`{
@@ -56,22 +56,37 @@ export async function upsertCollection(cat, dryRun) {
   return { action: ex ? 'updated' : 'created', handle, id, smart };
 }
 
-async function findExistingProduct(skus) {
-  const q = skus.map(s => `sku:"${s.replace(/"/g, '')}"`).join(' OR ');
-  const d = await gql(`query($q: String!) {
-    productVariants(first: 20, query: $q) { nodes { sku product { id handle media(first: 100) { nodes { id ... on MediaImage { image { url } } } } } } }
-  }`, { q });
-  const nodes = d.productVariants.nodes;
-  if (!nodes.length) return null;
-  const ids = new Set(nodes.map(n => n.product.id));
-  const product = nodes[0].product;
+const PRODUCT_FIELDS = 'id handle variants(first: 100) { nodes { sku } } media(first: 100) { nodes { id ... on MediaImage { image { url } } } }';
+
+function existing(product, conflict = false) {
   const media = new Map();
   for (const m of product.media.nodes) if (m.image) media.set(stripQuery(m.image.url), m.id);
-  return { id: product.id, handle: product.handle, media, conflict: ids.size > 1 };
+  return { id: product.id, handle: product.handle, media, conflict };
+}
+
+// Finds the store product of these SKUs. The SKU search uses Shopify's search index, which lags behind
+// for a freshly created product: a second upload right after the first one would not find it and would
+// make a copy. So when the search finds nothing, the product is also looked up directly by its handle
+// (made from the title, plus the "-1", "-2"... Shopify adds when a handle is taken) and kept if a SKU matches.
+async function findExistingProduct(skus, title) {
+  const q = skus.map(s => `sku:"${s.replace(/"/g, '')}"`).join(' OR ');
+  const d = await gql(`query($q: String!) {
+    productVariants(first: 20, query: $q) { nodes { sku product { ${PRODUCT_FIELDS} } } }
+  }`, { q });
+  const nodes = d.productVariants.nodes;
+  if (nodes.length) return existing(nodes[0].product, new Set(nodes.map(n => n.product.id)).size > 1);
+
+  const base = productHandle(title || '');
+  if (!base) return null;
+  const handles = [base, ...[1, 2, 3, 4, 5].map(i => `${base}-${i}`)];
+  const h = await gql(`query { ${handles.map((x, i) => `p${i}: productByIdentifier(identifier: { handle: ${JSON.stringify(x)} }) { ${PRODUCT_FIELDS} }`).join(' ')} }`);
+  const want = new Set(skus.map(s => s.toLowerCase()));
+  const hits = handles.map((_, i) => h[`p${i}`]).filter(p => p && p.variants.nodes.some(v => want.has((v.sku || '').toLowerCase())));
+  return hits.length ? existing(hits[0], hits.length > 1) : null;
 }
 
 export async function upsertProduct(p, { collectionIds, locationId, publicationId, dryRun }) {
-  const ex = await findExistingProduct(p.variants.map(v => v.sku));
+  const ex = await findExistingProduct(p.variants.map(v => v.sku), p.name);
   if (ex && ex.conflict) throw new Error(`The SKUs of ${p.code} already belong to different products on the store. Fix the SKUs first.`);
   const input = buildProductSetInput(p, { locationId, collectionIds, existingMedia: ex ? ex.media : new Map() });
   if (dryRun) return { action: ex ? 'update' : 'create', handle: ex ? ex.handle : null, variants: input.variants.length, newImages: countNew(input) };

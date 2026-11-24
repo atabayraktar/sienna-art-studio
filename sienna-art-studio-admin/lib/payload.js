@@ -26,6 +26,8 @@ export const EXISTING_COLLECTION_HANDLES = {
 export function slugify(s) {
   return s.toLowerCase().replace(/&/g, ' and ').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
+// The handle Shopify gives a new product made from this title ("Marble & Fabric LED Table Lamp" -> "marble-fabric-led-table-lamp").
+export const productHandle = title => title.toLowerCase().replace(/[’']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 export const collectionHandle = name => EXISTING_COLLECTION_HANDLES[name.toLowerCase()] || slugify(name);
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

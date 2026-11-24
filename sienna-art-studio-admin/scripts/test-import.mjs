@@ -3,7 +3,7 @@ import ExcelJS from 'exceljs';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { parseWorkbook, sheetToObjects, FEATURED_TAB, FEATURED_TAB_LEGACY } from '../lib/parse-workbook.js';
-import { buildProductSetInput, buildMenu, collectionHandle, toHtml, specsHtml } from '../lib/payload.js';
+import { buildProductSetInput, buildMenu, collectionHandle, toHtml, specsHtml, productHandle } from '../lib/payload.js';
 
 let pass = 0;
 const t = (name, fn) => Promise.resolve().then(fn).then(() => { pass++; console.log('ok  ', name); }, e => { console.error('FAIL', name, '\n    ', e.message); process.exitCode = 1; });
@@ -21,9 +21,9 @@ const real = await load();
 
 await t('real workbook: no errors, expected counts', () => {
   assert.deepEqual(real.errors, []);
-  assert.equal(real.categories.length, 13);
-  assert.equal(real.products.length, 91);
-  assert.equal(real.products.reduce((n, p) => n + p.variants.length, 0), 95);
+  assert.equal(real.categories.length, 14);
+  assert.equal(real.products.length, 92);
+  assert.equal(real.products.reduce((n, p) => n + p.variants.length, 0), 96);
   // every product sits in a sub-category, never directly in a main category
   assert.ok(real.products.every(p => p.subcategory), 'a product has no subcategory');
 });
@@ -31,11 +31,12 @@ await t('real workbook: no errors, expected counts', () => {
 await t('home page lists tab: 5 best sellers + 5 new arrivals, in row order, no errors', () => {
   assert.equal(real.featured.best_sellers.length, 5);
   assert.equal(real.featured.new_arrivals.length, 5);
-  assert.equal(real.featured.best_sellers[0], 'SAS-LAMP-SBL');
+  assert.equal(real.featured.best_sellers[0], 'SAS-LED-WHITEB-SM');
+  assert.equal(real.featured.best_sellers[2], 'SAS-NFC-BIZ-01');
   assert.equal(real.warnings.filter(w => w.where.startsWith('Site Customization')).length, 0);
 });
 await t('top bar: 2 messages from the Excel, in row order', () => {
-  assert.deepEqual(real.featured.top_bar, ['Coming soon', 'Lamps, personalized gifts and little surprises']);
+  assert.deepEqual(real.featured.top_bar, ['Free U.S. Shipping on Orders $250+', 'Lamps, personalized gifts and little surprises']);
 });
 await t('no home page tab: lists are left alone (featured = null)', async () => {
   const wb = new ExcelJS.Workbook();
@@ -176,11 +177,13 @@ process.env.SHOPIFY_ADMIN_TOKEN = 'shpat_test';
 const { upsertProduct, upsertCollection, writeMenu, writeFeatured, prepare } = await import('../lib/import-logic.js');
 const calls = [];
 let existing = null;
+let byHandle = {}; // handle -> product, for the direct handle lookup
 globalThis.fetch = async (url, init) => {
   const { query, variables } = JSON.parse(init.body);
   calls.push({ query, variables });
   const ok = data => ({ ok: true, status: 200, json: async () => ({ data }), text: async () => '' });
   if (query.includes('productVariants(')) return ok({ productVariants: { nodes: existing ? [{ sku: 'x', product: existing }] : [] } });
+  if (query.includes('productByIdentifier(')) { const out = {}; for (const [, k, h] of query.matchAll(/(p\d+): productByIdentifier\(identifier: \{ handle: "([^"]+)" \}\)/g)) out[k] = byHandle[h] || null; return ok(out); }
   if (query.includes('productSet(')) return ok({ productSet: { product: { id: 'gid://shopify/Product/5', handle: 'h' }, userErrors: [] } });
   if (query.includes('publishablePublish')) return ok({ publishablePublish: { userErrors: [] } });
   if (query.includes('collectionByIdentifier')) return ok({ collectionByIdentifier: variables.h === 'all-lamps' ? { id: 'gid://shopify/Collection/1', title: 'All Lamps', image: null, ruleSet: null } : variables.h === 'smart-one' ? { id: 'gid://shopify/Collection/3', title: 's', image: null, ruleSet: {} } : null });
@@ -209,6 +212,18 @@ await t('existing product (found by SKU): productSet WITH identifier', async () 
   const r = await upsertProduct(by('SAS-TOY-01'), { collectionIds: [], locationId: LOC, publicationId: 'gid://pub/1', dryRun: false });
   assert.equal(r.action, 'updated');
   assert.deepEqual(calls.find(c => c.query.includes('productSet(')).variables.identifier, { id: 'gid://shopify/Product/77' });
+});
+await t('fresh product the SKU search does not see yet: found by its handle, updated (no copy)', async () => {
+  calls.length = 0; existing = null;
+  const p = by('SAS-TOY-01');
+  const h = productHandle(p.name);
+  byHandle = { [h + '-1']: { id: 'gid://shopify/Product/88', handle: h + '-1', variants: { nodes: [{ sku: p.variants[0].sku }] }, media: { nodes: [] } } };
+  const r = await upsertProduct(p, { collectionIds: [], locationId: LOC, publicationId: null, dryRun: false });
+  assert.equal(r.action, 'updated');
+  assert.deepEqual(calls.find(c => c.query.includes('productSet(')).variables.identifier, { id: 'gid://shopify/Product/88' });
+  byHandle = { [h]: { id: 'gid://shopify/Product/89', handle: h, variants: { nodes: [{ sku: 'SOMETHING-ELSE' }] }, media: { nodes: [] } } };
+  assert.equal((await upsertProduct(p, { collectionIds: [], locationId: LOC, publicationId: null, dryRun: true })).action, 'create', 'same handle but other SKU = not the same product');
+  byHandle = {};
 });
 await t('dry run: reads but never writes', async () => {
   calls.length = 0; existing = null;
@@ -244,7 +259,8 @@ await t('menu: 4 top categories in Excel order, children grouped, handles kept',
   assert.deepEqual(m.map(g => g.name), ['Home & Lighting', 'Personalized Gifts', 'Toys & Kids', 'Home Decor']);
   assert.equal(m[0].handle, 'all-lamps');
   assert.deepEqual(m[2].children.map(c => c.handle), ['squishy-toys', 'kids-night-lights']);
-  assert.equal(m.reduce((n, g) => n + g.children.length, 0), 9);
+  assert.equal(m.reduce((n, g) => n + g.children.length, 0), 10);
+  assert.deepEqual(m[1].children.map(c => c.handle), ['custom-art-personalized-gifts', 'nfc-keychains']);
 });
 await t('home page lists: handles of this import are used, others are looked up, metafield sienna.featured is written', async () => {
   const orig = globalThis.fetch; const seen = [];
