@@ -169,6 +169,12 @@
             assign subs_raw = subs_by_group[forloop.index0]
           endif
           assign subs = subs_raw | split: '^'
+          assign sub_count = 0
+          for s in subs
+            if s != blank
+              assign sub_count = sub_count | plus: 1
+            endif
+          endfor
 
           assign zoom = block.settings.zoom | default: 105 | divided_by: 100.0
           assign origin = '50% 40%'
@@ -212,9 +218,9 @@
           <ul class="catcard__subs" aria-label="{{ ttl | escape }}">
             {%- for s in subs -%}
               {%- assign sp = s | split: '~' -%}
-              {%- comment -%}When the card photo is its own collection's photo, that collection as a sub-category would repeat it, so it is skipped.{%- endcomment -%}
+              {%- comment -%}When the card photo is its own collection's photo and that collection is the ONLY sub-category, a single square would just repeat the card, so it is skipped. With two or more sub-categories it is shown like the others.{%- endcomment -%}
               {%- assign repeats_card = false -%}
-              {%- if img_from_col and sp[1] == col.handle -%}
+              {%- if img_from_col and sp[1] == col.handle and sub_count < 2 -%}
                 {%- assign repeats_card = true -%}
               {%- endif -%}
               {%- if shown < 5 and repeats_card == false -%}
