@@ -21,8 +21,8 @@ Local development uses the Shopify CLI:
 
 ```
 cd sienna-art-studio-shop
-shopify theme dev --store sienna-art-studio-eiknbuj0     # live preview at 127.0.0.1:9292
-shopify theme push --unpublished --store sienna-art-studio-eiknbuj0   # upload as a new, unpublished theme
+shopify theme dev     # live preview at 127.0.0.1:9292
+shopify theme push --unpublished   # upload as a new, unpublished theme
 ```
 
 ## Admin panel (`sienna-art-studio-admin`)
