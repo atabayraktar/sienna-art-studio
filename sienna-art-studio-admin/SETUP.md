@@ -15,7 +15,7 @@ Kod hazır ve test edildi (`npm test`: 26 kontrol). Senin yapacağın tek şey S
    ```
 
    App URL kısmına `https://shopify.dev/apps/default-app-home` yaz, "Embed app in Shopify admin" kapalı olsun. **Release** et.
-4. Uygulamanın **Home** sayfasından **Install app** > mağazanı seç (`sienna-art-studio-eiknbuj0`) > onayla.
+4. Uygulamanın **Home** sayfasından **Install app** > mağazanı seç > onayla.
 5. **Settings** sayfasından **Client ID** ve **Client secret** değerlerini kopyala.
 
 Not: Bu yöntem sadece uygulama ile mağaza **aynı organizasyondaysa** çalışır. Mağaza başka bir hesapta ise Install adımında mağaza listede görünmez, o zaman söyle.
